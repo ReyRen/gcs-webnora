@@ -406,7 +406,7 @@ func (h *AuthHandler) GetOIDCConfig(c *gin.Context) {
 	providerDisplayName := ""
 	enabled := false
 
-	if h.configInfo != nil && h.configInfo.OIDCAuth != nil {
+	if !h.configInfo.PlatformSSOOnlyLogin() && h.configInfo != nil && h.configInfo.OIDCAuth != nil {
 		enabled = h.configInfo.OIDCAuth.Enable
 		providerDisplayName = strings.TrimSpace(h.configInfo.OIDCAuth.ProviderDisplayName)
 	}
@@ -618,6 +618,10 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	// Call service to refresh token
 	accessToken, newRefreshToken, err := h.userService.RefreshToken(ctx, req.RefreshToken)
 	if err != nil {
+		if stderrors.Is(err, types.ErrPlatformSSOUnavailable) {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"success": false, "message": "平台认证服务暂时不可用"})
+			return
+		}
 		logger.Errorf(ctx, "Failed to refresh token: %v", err)
 		appErr := errors.NewUnauthorizedError("Token refresh failed").WithDetails(err.Error())
 		c.Error(appErr)
@@ -865,6 +869,8 @@ func (h *AuthHandler) GetAuthConfig(c *gin.Context) {
 		"success":                  true,
 		"registration_mode":        mode,
 		"complex_password_enabled": complexPasswordEnabled,
+		"platform_sso_only_login":  h.configInfo.PlatformSSOOnlyLogin(),
+		"password_login_enabled":   !h.configInfo.PlatformSSOOnlyLogin(),
 	})
 }
 

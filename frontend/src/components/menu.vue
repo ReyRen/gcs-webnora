@@ -1,11 +1,12 @@
 <template>
     <div class="aside_box" :class="{ 'aside_box--collapsed': uiStore.sidebarCollapsed, 'aside_box--resizing': uiStore.sidebarResizing }">
-        <!-- 展开时：Logo + 搜索/折叠按钮同行 -->
+        <!-- 展开时：首页入口与搜索/折叠按钮同行 -->
         <div class="logo_row" v-if="!uiStore.sidebarCollapsed">
-            <div class="logo_box" @click="router.push('/platform/knowledge-bases')" style="cursor: pointer;">
-                <img class="logo" src="@/assets/img/weknora.png" alt="">
+            <button type="button" class="logo_box" @click="router.push('/platform/knowledge-bases')"
+                :aria-label="t('menu.knowledgeBase')" :title="t('menu.knowledgeBase')">
+                <span class="home-label">{{ t('menu.knowledgeBase') }}</span>
                 <sup v-if="isLiteEdition" class="lite-badge">Lite</sup>
-            </div>
+            </button>
             <div class="logo_actions">
                 <t-tooltip v-if="assistantStore.entry === 'sidebar'" :content="assistantName" placement="bottom">
                     <AssistantButton data-guide="assistant-entry" icon-only :icon-size="18" :label="assistantName"
@@ -222,6 +223,7 @@
 </template>
 
 <script setup lang="ts">
+import { getLoginRoute } from '@/utils/platformSso'
 import { storeToRefs } from 'pinia';
 import { onMounted, onUnmounted, watch, computed, ref, h, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -1225,7 +1227,7 @@ const gotopage = async (path: string) => {
         // 清理所有状态和本地存储
         authStore.logout();
         MessagePlugin.success(t('menu.logoutSuccess'));
-        router.push('/login');
+        router.push(getLoginRoute(true));
         return;
     } else {
         if (path === 'creatChat') {
@@ -1384,10 +1386,25 @@ const resizeSidebar = (delta: number, keyboard: boolean) => {
         flex: 1;
         min-width: 0;
         overflow: hidden;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: var(--td-text-color-primary);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
 
-        .logo {
-            width: 108px;
-            height: auto;
+        &:focus-visible {
+            outline: 2px solid var(--td-brand-color);
+            outline-offset: 2px;
+        }
+
+        .home-label {
+            font-size: 16px;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .lite-badge {
@@ -2002,11 +2019,6 @@ const resizeSidebar = (delta: number, keyboard: boolean) => {
 }
 </style>
 <style lang="less">
-// Dark mode: invert dark logo to light
-html[theme-mode="dark"] .aside_box .logo_box .logo {
-    filter: invert(1) hue-rotate(180deg);
-}
-
 // Dark mode: 滚动条在深色背景下需要更亮的颜色才看得见
 html[theme-mode="dark"] .aside_box .menu_top:hover {
     scrollbar-color: rgba(255, 255, 255, 0.22) transparent;

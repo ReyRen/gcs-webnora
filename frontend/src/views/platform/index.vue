@@ -1,29 +1,33 @@
 <template>
-    <div class="main" ref="dropzone" :style="{ '--sidebar-width': `${uiStore.sidebarDisplayWidth}px` }">
-        <Menu></Menu>
+    <div class="main" :class="{ 'main--knowledge-workspace': KNOWLEDGE_WORKSPACE }" ref="dropzone"
+        :style="{ '--sidebar-width': `${KNOWLEDGE_WORKSPACE ? 0 : uiStore.sidebarDisplayWidth}px` }">
+        <KnowledgeWorkspaceHeader v-if="KNOWLEDGE_WORKSPACE" />
+        <Menu v-else />
         <div v-if="isRouterAlive" class="platform-route-outlet">
             <RouterView />
         </div>
         <!-- WeKnora 助手：停靠时作为布局右栏挤压页面，悬浮时浮在页面上；都不加遮罩，
              跨页面保留会话，从侧栏、右侧边缘按钮或命令面板唤出（设置里可选） -->
-        <AssistantPanel />
-        <AssistantLauncher />
-        <AssistantPageBridge />
+        <AssistantPanel v-if="!KNOWLEDGE_WORKSPACE" />
+        <AssistantLauncher v-if="!KNOWLEDGE_WORKSPACE" />
+        <AssistantPageBridge v-if="!KNOWLEDGE_WORKSPACE" />
         <div class="upload-mask" v-show="ismask">
             <UploadMask></UploadMask>
         </div>
         <!-- 全局设置模态框，供所有 platform 子路由使用 -->
         <Settings />
         <!-- 全局命令面板 (⌘K)，随 platform 路由存活 -->
-        <GlobalCommandPalette />
+        <GlobalCommandPalette v-if="!KNOWLEDGE_WORKSPACE" />
         <!-- 知识库文件上传进度浮层：上传队列放在 store 里，切换页面不中断 -->
         <UploadTasksPanel />
         <!-- 带遮罩层的新手引导：首次进入自动开启，可从用户菜单顶部昵称旁帮助按钮重新打开 -->
-        <NewUserGuide />
+        <NewUserGuide v-if="!KNOWLEDGE_WORKSPACE" />
     </div>
 </template>
 <script setup lang="ts">
 import Menu from '@/components/menu.vue'
+import KnowledgeWorkspaceHeader from '@/components/KnowledgeWorkspaceHeader.vue'
+import { KNOWLEDGE_WORKSPACE } from '@/config/knowledgeWorkspace'
 import { ref, onMounted, onUnmounted, nextTick, provide, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 import UploadMask from '@/components/upload-mask.vue'
@@ -215,7 +219,7 @@ onMounted(() => {
     // /platform/knowledge-search?q=foo 重定向后携带 ?cmdk=foo
     maybeOpenCmdkFromRoute()
     // 后台预取对话输入栏资源，进入 creatChat / chat 时复用缓存
-    void useChatResourcesStore().prefetchChatInput()
+    if (!KNOWLEDGE_WORKSPACE) void useChatResourcesStore().prefetchChatInput()
 });
 
 // 监听路由变化，兼容 SPA 内部跳转时的 ?cmdk= 参数
@@ -270,6 +274,11 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+.main--knowledge-workspace {
+    flex-direction: column;
+    min-width: 0;
 }
 
 .upload-mask {

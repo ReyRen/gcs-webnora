@@ -66,8 +66,8 @@
         </div>
       </div>
 
-      <!-- 修改密码：与其它 setting-row 同款只读行 + 编辑入口，表单进原地 popup -->
-      <div class="setting-row">
+      <!-- Passwords are managed by the main platform in exclusive SSO mode. -->
+      <div v-if="!platformSsoOnlyLogin" class="setting-row">
         <div class="setting-info">
           <label>{{ $t('userProfile.changePassword.label') }}</label>
           <p class="desc">
@@ -170,6 +170,7 @@
 </template>
 
 <script setup lang="ts">
+import { getLoginRoute, isPlatformSsoOnlyLogin } from '@/utils/platformSso'
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { MessagePlugin } from 'tdesign-vue-next'
@@ -188,6 +189,7 @@ import { newPasswordRules } from '@/utils/passwordPolicy'
 const { t, locale } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
+const platformSsoOnlyLogin = isPlatformSsoOnlyLogin()
 
 const userInfo = ref<UserInfo | null>(null)
 const complexPasswordEnabled = ref(false)
@@ -322,7 +324,7 @@ const submitPasswordChange = async () => {
       /* ignore — local cleanup still proceeds */
     }
     authStore.logout()
-    router.push('/login')
+    router.push(getLoginRoute(true))
   } catch (err: any) {
     MessagePlugin.error(err?.message || t('userProfile.changePassword.failed'))
   } finally {

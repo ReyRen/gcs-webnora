@@ -181,9 +181,9 @@ export default {
   automation: {
     conversationNotice: "この会話は自動化タスクが実行します。手動でメッセージは送信できません。保留中のリクエストは上で対応してください。",
     title: 'オートメーション',
-    description: 'WeKnora アシスタントがあなたに代わって定期的にタスクを実行します。結果と承認待ちの操作を通知します。',
+    description: 'アシスタントがあなたに代わって定期的にタスクを実行します。結果と承認待ちの操作を通知します。',
     add: '新規オートメーション',
-    addHint: 'WeKnora アシスタントに作成を頼むこともできます',
+    addHint: 'アシスタントに作成を頼むこともできます',
     paused: '一時停止中',
     scheduleEnded: '終了',
     scheduleEndedHint: 'この一回限りのスケジュールは終了しました。今すぐ実行するか、実行日時を変更してから再開してください。',
@@ -235,7 +235,7 @@ export default {
       sections: {
         basic: {
           title: '基本情報',
-          desc: 'WeKnora アシスタントがタスクを実行します。他のエージェントに委任する場合は、タスクに委任先と作業内容を記載してください。',
+          desc: 'アシスタントがタスクを実行します。他のエージェントに委任する場合は、タスクに委任先と作業内容を記載してください。',
         },
         schedule: {
           title: '実行スケジュール',
@@ -677,11 +677,11 @@ export default {
     reopen: 'プロダクトツアー',
     steps: {
       assistant: {
-        title: 'WeKnora アシスタントのご紹介',
+        title: 'アシスタントのご紹介',
         desc: 'WeKnora のバージョン、機能、設定について質問できます。現在のページをもとに、あなたの権限でエージェントの作成、定期タスクの設定、ナレッジの整理も行えます。'
       },
       welcome: {
-        title: 'WeKnoraへようこそ',
+        title: 'ナレッジベースへようこそ',
         desc: '数ステップでナレッジベース、チャット、エージェントの使い方をご紹介します。「次へ」をクリックして開始してください。'
       },
       knowledge: {
@@ -3088,7 +3088,7 @@ export default {
     registerSuccess: '登録が完了しました。ログインしてください',
     registerFailed: '登録に失敗しました',
     subtitle: 'RAG質問応答、ReActエージェント、Wiki。LLMが支える企業向けナレッジフレームワーク',
-    registerSubtitle: 'アカウントを作成してWeKnoraを使い始めましょう',
+    registerSubtitle: 'アカウントを作成してナレッジベースを使い始めましょう',
     emailPlaceholder: 'メールアドレスを入力',
     passwordPlaceholder: 'パスワードを入力',
     confirmPasswordPlaceholder: 'パスワードを再入力',
@@ -3440,7 +3440,7 @@ export default {
     goToAgentSettings: 'エージェント設定に移動'
   },
   createChat: {
-    title: 'こんにちは、WeKnoraです。あなたのナレッジを、すぐそばに',
+    title: 'こんにちは。何をお手伝いしましょうか？',
     newSessionTitle: '新しいセッション',
     openProject: 'プロジェクトを選択',
     clearProject: '解除',
@@ -3695,7 +3695,7 @@ export default {
       systemActor: 'システム',
       actorWithAPIKey: '{actor} · API Key · {name}',
       actorAPIKey: 'API Key · {name}',
-      viaAssistant: 'WeKnora アシスタント経由',
+      viaAssistant: 'アシスタント経由',
       knowledgeBase: 'ナレッジベース',
       countItems: '{count}件',
       titleWithCount: '{title}ほか{count}件',
@@ -6267,6 +6267,7 @@ export default {
       withWebSearch: 'Web検索'
     },
     organization: {
+      knowledgeSubtitle: '共有スペースを作成・参加して、ナレッジベースを共同管理・共有します',
       cardStats: {
         members: 'メンバー {count}',
         knowledgeBases: 'ナレッジベース {count}',
@@ -6596,7 +6597,7 @@ export default {
       videoNotSupported: 'お使いのブラウザは動画再生に対応していません'
     },
     assistant: {
-      title: 'WeKnora アシスタント',
+      title: 'アシスタント',
       newConversation: '新しい会話',
       history: '会話履歴',
       untitledConversation: '無題の会話',
@@ -6613,7 +6614,7 @@ export default {
       welcomeDesc: 'WeKnora の使い方、ナレッジやドキュメントの整理、エージェント・ツール・自動化の設定をお手伝いします。',
       help: {
         label: 'アシスタントの説明',
-        title: 'WeKnora アシスタントにできること',
+        title: 'アシスタントにできること',
         identity: 'アシスタントはあなた自身として動きます。見たり変更したりできる範囲は、このスペースでのあなたの役割までです。',
         page: '開くと現在のページが付きます。画面の内容を整理したり、エージェントや自動化を設定したり、フォームに記入したりできます。ボタンを押したり保存したりはしません。',
         access: '入力欄の下で権限を切り替えられます。閲覧のみ、変更前に確認、回復できる変更は自動実行。削除は必ず確認が必要で、管理者が定めた上限は超えられません。',

@@ -181,9 +181,9 @@ export default {
   automation: {
     conversationNotice: "This conversation is run by an automation. Manual messages are unavailable; handle pending requests above.",
     title: 'Automations',
-    description: 'Have the WeKnora assistant run tasks on a schedule as you. You are notified of results and pending approvals.',
+    description: 'Have the assistant run tasks on a schedule as you. You are notified of results and pending approvals.',
     add: 'New automation',
-    addHint: 'Or ask the WeKnora assistant to set one up',
+    addHint: 'Or ask the assistant to set one up',
     paused: 'Paused',
     scheduleEnded: 'Ended',
     scheduleEndedHint: 'This one-time schedule has ended. Run it now, or edit the run time before resuming.',
@@ -235,7 +235,7 @@ export default {
       sections: {
         basic: {
           title: 'Basics',
-          desc: 'The WeKnora assistant runs each task. To delegate work, name the agents and their assignments in the task.',
+          desc: 'The assistant runs each task. To delegate work, name the agents and their assignments in the task.',
         },
         schedule: {
           title: 'Schedule',
@@ -677,11 +677,11 @@ export default {
     reopen: 'Product tour',
     steps: {
       assistant: {
-        title: 'Meet the WeKnora Assistant',
-        desc: 'Ask about WeKnora versions, features and setup. Using the current page as context, the assistant can create agents, schedule tasks and organize knowledge on your behalf, within your permissions.'
+        title: 'Meet the Assistant',
+        desc: 'Ask about system versions, features and setup. Using the current page as context, the assistant can create agents, schedule tasks and organize knowledge on your behalf, within your permissions.'
       },
       welcome: {
-        title: 'Welcome to WeKnora',
+        title: 'Welcome to the knowledge base',
         desc: 'A few quick steps to get you familiar with knowledge bases, chat and agents. Click "Next" to begin.'
       },
       knowledge: {
@@ -3088,7 +3088,7 @@ export default {
     registerSuccess: 'Registration successful. Please sign in',
     registerFailed: 'Registration failed',
     subtitle: 'RAG Q&A, ReAct Agent and Wiki — an LLM-powered enterprise knowledge framework',
-    registerSubtitle: 'Create your account and start using WeKnora',
+    registerSubtitle: 'Create your account and start using the knowledge base',
     emailPlaceholder: 'Enter email address',
     passwordPlaceholder: 'Enter password',
     confirmPasswordPlaceholder: 'Enter password again',
@@ -3440,7 +3440,7 @@ export default {
     goToAgentSettings: 'Go to agent settings'
   },
   createChat: {
-    title: 'Hi, I am WeKnora — your knowledge, within reach',
+    title: 'Hello, how can I help?',
     newSessionTitle: 'New Session',
     openProject: 'Select project',
     clearProject: 'Clear',
@@ -3695,7 +3695,7 @@ export default {
       systemActor: 'System',
       actorWithAPIKey: '{actor} · API Key · {name}',
       actorAPIKey: 'API Key · {name}',
-      viaAssistant: 'Via WeKnora Assistant',
+      viaAssistant: 'Via Assistant',
       knowledgeBase: 'Knowledge base',
       countItems: '{count} items',
       titleWithCount: '{title} and {count} more',
@@ -6267,6 +6267,7 @@ export default {
       withWebSearch: 'Web Search'
     },
     organization: {
+      knowledgeSubtitle: 'Create or join shared spaces to manage and share knowledge bases together',
       cardStats: {
         members: '{count} members',
         knowledgeBases: '{count} knowledge bases',
@@ -6596,7 +6597,7 @@ export default {
       videoNotSupported: 'Your browser does not support video playback'
     },
     assistant: {
-      title: 'WeKnora Assistant',
+      title: 'Assistant',
       newConversation: 'New conversation',
       history: 'Conversation history',
       untitledConversation: 'Untitled conversation',
@@ -6610,10 +6611,10 @@ export default {
       },
       welcomeTitle: 'How can I help?',
       agentWelcomeDesc: 'Check this agent’s configuration, change its model or see which knowledge bases it can search.',
-      welcomeDesc: 'I can answer questions about WeKnora, organize knowledge and documents, and help set up agents, tools and automations.',
+      welcomeDesc: 'I can answer questions about the system, organize knowledge and documents, and help set up agents, tools and automations.',
       help: {
         label: 'About the assistant',
-        title: 'What the WeKnora assistant can do',
+        title: 'What the assistant can do',
         identity: 'The assistant works as you. It can see and change only what your role in this workspace allows.',
         page: 'It keeps the current page attached, so it can summarize what is on screen, set up agents and automations, or fill in forms. It will not click buttons or save for you.',
         access: 'Under the input you can switch access: read-only, confirm before changes, or run recoverable changes automatically. Deletes always need your confirmation, and an admin ceiling cannot be exceeded.',

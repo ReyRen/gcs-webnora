@@ -27,7 +27,7 @@
               </t-tooltip>
             </div>
           </div>
-          <p class="header-subtitle" style="--wails-draggable: drag">{{ $t('organization.subtitle') }}</p>
+          <p class="header-subtitle" style="--wails-draggable: drag">{{ $t(KNOWLEDGE_WORKSPACE ? 'organization.knowledgeSubtitle' : 'organization.subtitle') }}</p>
         </div>
       </div>
       <ResourceListToolbar mode="organization" :model-value="spaceSelection" @update:model-value="value => spaceSelection = value === 'created' || value === 'joined' ? value : 'all'" v-model:query="keyword" :count-all="organizations.length"
@@ -148,7 +148,7 @@
                       <span class="badge-count">{{ $t('organization.cardStats.knowledgeBases', { count: org.share_count ?? 0 }) }}</span>
                     </div>
                   </t-tooltip>
-                  <t-tooltip :content="$t('organization.invite.agents')" placement="top">
+                  <t-tooltip v-if="!KNOWLEDGE_WORKSPACE" :content="$t('organization.invite.agents')" placement="top">
                     <div class="feature-badge is-count stat-agent">
                       <t-icon name="control-platform" size="14px" />
                       <span class="badge-count">{{ $t('organization.cardStats.agents', { count: org.agent_share_count ?? 0 }) }}</span>
@@ -353,7 +353,7 @@
                           <span class="badge-count">{{ invitePreviewData.share_count }}</span>
                         </div>
                       </t-tooltip>
-                      <t-tooltip :content="$t('organization.invite.agents')" placement="top">
+                      <t-tooltip v-if="!KNOWLEDGE_WORKSPACE" :content="$t('organization.invite.agents')" placement="top">
                         <div class="feature-badge stat-agent">
                           <img src="@/assets/img/agent-green.svg" class="stat-agent-icon" alt="" aria-hidden="true" />
                           <span class="badge-count">{{ invitePreviewData.agent_share_count ?? 0 }}</span>
@@ -436,6 +436,7 @@ import ResourceIcon from '@/components/icons/ResourceIcon.vue'
 import { useConfirmDelete } from '@/components/settings/useConfirmDelete'
 import { useOrganizationStore } from '@/stores/organization'
 import { useAuthStore } from '@/stores/auth'
+import { KNOWLEDGE_WORKSPACE } from '@/config/knowledgeWorkspace'
 import type { Organization, OrganizationPreview, SearchableOrganizationItem } from '@/api/organization'
 import { previewOrganization, submitJoinRequest } from '@/api/organization'
 import { useI18n } from 'vue-i18n'

@@ -9,7 +9,7 @@ import ts from 'typescript'
 const { descriptor } = parse(readFileSync(new URL('./AssistantActionButton.vue', import.meta.url), 'utf8'))
 const script = compileScript(descriptor, { id: 'assistant-action-test', inlineTemplate: true }).content
 
-function fixture(selection?: { text: string; field?: string }) {
+function fixture(selection?: { text: string; field?: string }, knowledgeWorkspace = false) {
   const calls: Array<[string, unknown?]> = []
   const assistant = {
     pageAccess: true,
@@ -22,6 +22,7 @@ function fixture(selection?: { text: string; field?: string }) {
     vue,
     'vue-i18n': { useI18n: () => ({ t: (key: string) => key }) },
     '@/stores/assistant': { useAssistantStore: () => assistant },
+    '@/config/knowledgeWorkspace': { KNOWLEDGE_WORKSPACE: knowledgeWorkspace },
     './AssistantButton.vue': { render: () => null },
   }
   const exports: any = {}
@@ -57,6 +58,12 @@ test('actions respect page access and expose their disabled state', () => {
   f.props.disabled = true
   assert.equal(f.render({}, []).props.disabled, true)
   f.assistant.pageAccess = false
+  assert.equal(f.render({}, []).type, vue.Comment)
+  assert.equal(f.calls.length, 0)
+})
+
+test('knowledge workspace does not offer actions that open the built-in assistant', () => {
+  const f = fixture({ text: 'Document content' }, true)
   assert.equal(f.render({}, []).type, vue.Comment)
   assert.equal(f.calls.length, 0)
 })

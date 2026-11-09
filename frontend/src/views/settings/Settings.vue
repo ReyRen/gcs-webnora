@@ -21,14 +21,7 @@
               <line x1="2.94" y1="12.5" x2="15.06" y2="12.5" stroke="currentColor" stroke-width="1.2"
                 stroke-linecap="round" />
             </svg>
-            <!-- WeKnora Cloud 使用自定义 W 图标 -->
-            <svg v-else-if="item.key === 'weknoracloud'" width="17" height="17" viewBox="0 0 18 18"
-              fill="none" xmlns="http://www.w3.org/2000/svg" class="nav-icon">
-              <rect x="1.5" y="1.5" width="15" height="15" rx="3.5" stroke="currentColor" stroke-width="1.2"
-                fill="none" />
-              <path d="M4.5 5.5L6.5 12.5L9 7.5L11.5 12.5L13.5 5.5" stroke="currentColor" stroke-width="1.3"
-                stroke-linecap="round" stroke-linejoin="round" fill="none" />
-            </svg>
+            <t-icon v-else-if="item.key === 'weknoracloud'" name="cloud" class="nav-icon" />
             <!-- 沙箱：隔离运行窗口，避免和 Ollama / 系统设置共用 server -->
             <svg v-else-if="item.key === 'sandbox'" width="17" height="17" viewBox="0 0 18 18" fill="none"
               xmlns="http://www.w3.org/2000/svg" class="nav-icon">
@@ -205,6 +198,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { KNOWLEDGE_WORKSPACE, isKnowledgeWorkspaceSetting } from '@/config/knowledgeWorkspace'
 import { useRoute, useRouter } from 'vue-router'
 import type { LocationQueryRaw } from 'vue-router'
 import { useUIStore } from '@/stores/ui'
@@ -328,6 +322,7 @@ const syncSettingsRoute = (sectionKey: string) => {
 }
 
 const isSectionSupported = (key: string): boolean => {
+  if (KNOWLEDGE_WORKSPACE && !isKnowledgeWorkspaceSetting(key)) return false
   if (isIntegrationSection(key)) {
     return deploymentCapabilities.isSupported(
       INTEGRATION_TAB_CAPABILITY[integrationTabFromSection(key)],
@@ -340,6 +335,7 @@ const isSectionSupported = (key: string): boolean => {
 }
 
 const canSeeSection = (key: string): boolean => {
+  if (KNOWLEDGE_WORKSPACE && !isKnowledgeWorkspaceSetting(key)) return false
   if (isIntegrationSection(key)) {
     const min = INTEGRATION_TAB_MIN_ROLE[integrationTabFromSection(key)]
     if (!min) return true
@@ -529,6 +525,7 @@ const handleClose = () => {
 // Existing in-product shortcuts can still call openSettings; moved tools
 // always navigate to the toolbox, with the requested sandbox selection intact.
 const redirectToToolbox = (section: string, subSection?: string | null) => {
+  if (KNOWLEDGE_WORKSPACE) return false
   if (!isToolboxSection(section)) return false
   uiStore.closeSettings()
   void router.push(toolboxLocation(section, subSection || undefined))

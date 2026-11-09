@@ -212,7 +212,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="permission in orgRoleMatrix.admin" :key="permission.key">
+              <tr v-for="permission in visibleRolePermissions" :key="permission.key">
                 <th scope="row">{{ $t(`organization.editor.${permission.key}`) }}</th>
                 <td v-for="role in orgRoleMatrixOrder" :key="role">
                   <span v-if="orgRoleMatrix[role].find(item => item.key === permission.key)?.has"
@@ -654,7 +654,7 @@
       </div>
 
       <!-- 共享智能体 -->
-      <div v-show="currentSection === 'sharedAgents'" class="section">
+      <div v-if="!KNOWLEDGE_WORKSPACE" v-show="currentSection === 'sharedAgents'" class="section">
         <div class="section-header">
           <div class="section-header-row">
             <div class="section-header-titlewrap">
@@ -771,6 +771,7 @@ import {
 } from '@/api/organization'
 import { useOrganizationStore } from '@/stores/organization'
 import { useAuthStore } from '@/stores/auth'
+import { KNOWLEDGE_WORKSPACE } from '@/config/knowledgeWorkspace'
 import SpaceAvatar from '@/components/SpaceAvatar.vue'
 import agentIconSrc from '@/assets/img/agent.svg'
 import agentIconActiveSrc from '@/assets/img/agent-green.svg'
@@ -960,7 +961,7 @@ const navItems = computed(() => {
       badge: sharedAgents.value.length
     })
   }
-  return items
+  return KNOWLEDGE_WORKSPACE ? items.filter(item => item.key !== 'sharedAgents') : items
 })
 
 const navGroups = computed(() => {
@@ -1047,6 +1048,10 @@ const orgRoleMatrix: Record<OrgRole, OrgRolePerm[]> = {
     { key: 'adminPerm1', has: false },
   ],
 }
+
+const visibleRolePermissions = computed(() => orgRoleMatrix.admin.filter(
+  permission => !KNOWLEDGE_WORKSPACE || permission.key !== 'useSharedAgentsPerm',
+))
 
 function orgRoleIcon(role: OrgRole): string {
   switch (role) {
@@ -1293,14 +1298,14 @@ const fetchSharedKBs = async () => {
   try {
     const [kbRes, agentRes] = await Promise.all([
       listOrgShares(props.orgId),
-      listOrgAgentShares(props.orgId)
+      KNOWLEDGE_WORKSPACE ? Promise.resolve(null) : listOrgAgentShares(props.orgId)
     ])
     if (kbRes.success && kbRes.data) {
       sharedKnowledgeBases.value = kbRes.data.shares || []
     } else {
       sharedKnowledgeBases.value = []
     }
-    if (agentRes.success && agentRes.data) {
+    if (agentRes?.success && agentRes.data) {
       sharedAgents.value = agentRes.data.shares || []
     } else {
       sharedAgents.value = []

@@ -181,9 +181,9 @@ export default {
   automation: {
     conversationNotice: "此会话由自动化任务运行，不能手动发送消息。请在上方处理待审批事项。",
     title: '自动化',
-    description: '让 WeKnora 助手按计划以你的身份执行任务，结果和待审批事项会通知你。',
+    description: '让智能助手按计划以你的身份执行任务，结果和待审批事项会通知你。',
     add: '新建自动化',
-    addHint: '也可以直接让 WeKnora 助手帮你创建',
+    addHint: '也可以直接让智能助手帮你创建',
     paused: '已暂停',
     scheduleEnded: '已结束',
     scheduleEndedHint: '一次性计划已结束。可立即运行，或修改运行时间后恢复。',
@@ -235,7 +235,7 @@ export default {
       sections: {
         basic: {
           title: '基本信息',
-          desc: '任务由 WeKnora 助手执行。需要其他智能体时，请在任务中写明委派对象和工作。',
+          desc: '任务由智能助手执行。需要其他智能体时，请在任务中写明委派对象和工作。',
         },
         schedule: {
           title: '运行时间',
@@ -2713,7 +2713,7 @@ export default {
     askUser: '向用户提问'
   },
   assistant: {
-    title: 'WeKnora 助手',
+    title: '智能助手',
     newConversation: '新对话',
     history: '历史对话',
     untitledConversation: '未命名对话',
@@ -2727,10 +2727,10 @@ export default {
     },
     welcomeTitle: '有什么可以帮你？',
     agentWelcomeDesc: '可以检查这个智能体的配置、调整模型或查看它能检索的知识库。',
-    welcomeDesc: '我可以解答 WeKnora 的使用问题，整理知识与文档，帮你配置智能体、工具和自动化。',
+    welcomeDesc: '我可以解答系统使用问题，整理知识与文档，帮你配置智能体、工具和自动化。',
     help: {
       label: '助手说明',
-      title: 'WeKnora 助手能做什么',
+      title: '智能助手能做什么',
       identity: '助手以你的身份工作。它能看到和修改的范围，与你在这个空间里的角色一致，不会超出你的权限。',
       page: '打开后会附带当前页面，可以据此梳理内容、配置智能体和自动化，或代为填写表单。它不会替你点击按钮或保存。',
       access: '输入框下方可以切换权限：只读、修改前确认、自动执行。删除始终需要你确认。管理员限制的最高等级无法突破。',
@@ -3269,6 +3269,7 @@ export default {
     videoNotSupported: '您的浏览器不支持视频播放'
   },
   organization: {
+    knowledgeSubtitle: '创建或加入共享空间，协作管理和共享知识库',
     cardStats: {
       members: '{count} 成员',
       knowledgeBases: '{count} 知识库',
@@ -6071,7 +6072,7 @@ export default {
       systemActor: '系统触发',
       actorWithAPIKey: '{actor} · API Key · {name}',
       actorAPIKey: 'API Key · {name}',
-      viaAssistant: '经 WeKnora 助手',
+      viaAssistant: '经智能助手',
       knowledgeBase: '知识库',
       countItems: '共 {count} 项',
       titleWithCount: '{title} 等 {count} 项',
@@ -6386,7 +6387,7 @@ export default {
     },
     empty: {
       title: '暂无知识库',
-      description: '点击左侧快捷操作"新建知识库"按钮创建第一个知识库',
+      description: '点击“新建知识库”按钮创建第一个知识库',
       sharedTitle: '暂无共享知识库',
       sharedDescription: '您可以加入共享空间或请求他人共享知识库给您',
       favoritesTitle: '暂无收藏',
@@ -6396,7 +6397,7 @@ export default {
     }
   },
   createChat: {
-    title: 'Hi，我是 WeKnora，让你的知识触手可及',
+    title: '你好，有什么可以帮你？',
     newSessionTitle: '新会话',
     openProject: '选择项目',
     clearProject: '取消绑定',
@@ -6743,7 +6744,7 @@ export default {
     registerSuccess: '注册成功，请登录',
     registerFailed: '注册失败',
     subtitle: 'RAG 问答、ReAct 智能体与 Wiki 知识库，大模型驱动的企业级知识框架',
-    registerSubtitle: '创建账户并开始使用 WeKnora',
+    registerSubtitle: '创建账户并开始使用知识库',
     emailPlaceholder: '输入邮箱地址',
     passwordPlaceholder: '输入密码',
     confirmPasswordPlaceholder: '再次输入密码',
@@ -9149,8 +9150,8 @@ export default {
     reopen: '新手引导',
     steps: {
       assistant: {
-        title: '认识 WeKnora 助手',
-        desc: '可以问 WeKnora 的版本、功能和配置，也可以结合当前页面，以你的身份创建智能体、设置定时任务或整理知识。'
+        title: '认识智能助手',
+        desc: '可以问系统的版本、功能和配置，也可以结合当前页面，以你的身份创建智能体、设置定时任务或整理知识。'
       },
       done: {
         title: '一切就绪',
@@ -9174,10 +9175,10 @@ export default {
       },
       knowledge: {
         title: '创建你的知识库',
-        desc: '知识库是一切的起点：上传文档、网页或 FAQ，WeKnora 会自动解析并建立索引。点击这里进入知识库。'
+        desc: '知识库是一切的起点：上传文档、网页或 FAQ，系统会自动解析并建立索引。点击这里进入知识库。'
       },
       welcome: {
-        title: '欢迎使用 WeKnora',
+        title: '欢迎使用知识库',
         desc: '只需几步，带你快速了解知识库、对话与智能体的核心用法。点击「下一步」开始。'
       }
     }

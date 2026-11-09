@@ -211,6 +211,8 @@ func RegisterMyEnvVarRoutes(r *gin.RouterGroup, h *handler.MeEnvVarHandler) {
 
 // RegisterAuthRoutes registers authentication routes
 func RegisterAuthRoutes(r *gin.RouterGroup, handler *handler.AuthHandler, g *rbacGuards) {
+	r.GET("/auth/platform-sso/config", handler.PlatformSSOConfig)
+	r.POST("/auth/platform-sso/exchange", middleware.PublicAuthRateLimit(), handler.PlatformSSOExchange)
 	r.POST("/auth/register", handler.Register)
 	// Share-link surfaces are unauthenticated and accept a plaintext
 	// token from the caller; rate-limit by IP to bound brute-force /

@@ -181,9 +181,9 @@ export default {
   automation: {
     conversationNotice: "此對話由自動化任務執行，無法手動傳送訊息。請在上方處理待審批事項。",
     title: '自動化',
-    description: '讓 WeKnora 助手按排程以你的身分執行任務，結果與待審批事項會通知你。',
+    description: '讓智慧助手按排程以你的身分執行任務，結果與待審批事項會通知你。',
     add: '新增自動化',
-    addHint: '也可以直接請 WeKnora 助手幫你建立',
+    addHint: '也可以直接請智慧助手幫你建立',
     paused: '已暫停',
     scheduleEnded: '已結束',
     scheduleEndedHint: '一次性排程已結束。可立即執行，或修改執行時間後恢復。',
@@ -235,7 +235,7 @@ export default {
       sections: {
         basic: {
           title: '基本資訊',
-          desc: '任務由 WeKnora 助手執行。需要其他智慧代理時，請在任務中寫明委派對象與工作。',
+          desc: '任務由智慧助手執行。需要其他智慧代理時，請在任務中寫明委派對象與工作。',
         },
         schedule: {
           title: '執行時間',
@@ -2713,7 +2713,7 @@ export default {
     askUser: '向使用者提問'
   },
   assistant: {
-    title: 'WeKnora 助手',
+    title: '智慧助手',
     newConversation: '新對話',
     history: '歷史對話',
     untitledConversation: '未命名對話',
@@ -2727,10 +2727,10 @@ export default {
     },
     welcomeTitle: '有什麼可以幫你？',
     agentWelcomeDesc: '可以檢查這個智慧代理的設定、調整模型或查看它能檢索的知識庫。',
-    welcomeDesc: '我可以解答 WeKnora 的使用問題，整理知識與文件，幫你設定智慧代理、工具和自動化。',
+    welcomeDesc: '我可以解答系統使用問題，整理知識與文件，幫你設定智慧代理、工具和自動化。',
     help: {
       label: '助手說明',
-      title: 'WeKnora 助手能做什麼',
+      title: '智慧助手能做什麼',
       identity: '助手以你的身份工作。它能看到和修改的範圍，與你在這個空間裡的角色一致，不會超出你的權限。',
       page: '打開後會附帶目前頁面，可以據此梳理內容、設定智慧代理和自動化，或代為填寫表單。它不會替你點擊按鈕或儲存。',
       access: '輸入框下方可以切換權限：唯讀、修改前確認、自動執行。刪除始終需要你確認。管理員限制的最高等級無法突破。',
@@ -3269,6 +3269,7 @@ export default {
     videoNotSupported: '您的瀏覽器不支持影片播放'
   },
   organization: {
+    knowledgeSubtitle: '建立或加入共享空間，協作管理和共享知識庫',
     cardStats: {
       members: '{count} 成員',
       knowledgeBases: '{count} 知識庫',
@@ -6071,7 +6072,7 @@ export default {
       systemActor: '系統觸發',
       actorWithAPIKey: '{actor} · API Key · {name}',
       actorAPIKey: 'API Key · {name}',
-      viaAssistant: '經 WeKnora 助手',
+      viaAssistant: '經智慧助手',
       knowledgeBase: '知識庫',
       countItems: '共 {count} 項',
       titleWithCount: '{title} 等 {count} 項',
@@ -6386,7 +6387,7 @@ export default {
     },
     empty: {
       title: '暫無知識庫',
-      description: '點擊左側快捷操作"新建知識庫"按鈕建立第一個知識庫',
+      description: '點擊「新建知識庫」按鈕建立第一個知識庫',
       sharedTitle: '暫無共享知識庫',
       sharedDescription: '您可以加入共享空間或請求他人共享知識庫給您',
       favoritesTitle: '暫無收藏',
@@ -6396,7 +6397,7 @@ export default {
     }
   },
   createChat: {
-    title: 'Hi，我是 WeKnora，讓你的知識觸手可及',
+    title: '你好，有什麼可以幫你？',
     newSessionTitle: '新會話',
     openProject: '選擇專案',
     clearProject: '取消綁定',
@@ -6743,7 +6744,7 @@ export default {
     registerSuccess: '註冊成功，請登入',
     registerFailed: '註冊失敗',
     subtitle: 'RAG 問答、ReAct 智慧代理與 Wiki 知識庫，大型語言模型驅動的企業級知識框架',
-    registerSubtitle: '建立帳戶並開始使用 WeKnora',
+    registerSubtitle: '建立帳戶並開始使用知識庫',
     emailPlaceholder: '輸入電子信箱地址',
     passwordPlaceholder: '輸入密碼',
     confirmPasswordPlaceholder: '再次輸入密碼',
@@ -9149,8 +9150,8 @@ export default {
     reopen: '新手引導',
     steps: {
       assistant: {
-        title: '認識 WeKnora 助手',
-        desc: '可以詢問 WeKnora 的版本、功能與設定，也可以結合目前頁面，以你的身分建立智慧代理、設定定時任務或整理知識。'
+        title: '認識智慧助手',
+        desc: '可以詢問系統的版本、功能與設定，也可以結合目前頁面，以你的身分建立智慧代理、設定定時任務或整理知識。'
       },
       done: {
         title: '一切就緒',
@@ -9174,10 +9175,10 @@ export default {
       },
       knowledge: {
         title: '建立你的知識庫',
-        desc: '知識庫是一切的起點：上傳文件、網頁或 FAQ，WeKnora 會自動解析並建立索引。點擊這裡進入知識庫。'
+        desc: '知識庫是一切的起點：上傳文件、網頁或 FAQ，系統會自動解析並建立索引。點擊這裡進入知識庫。'
       },
       welcome: {
-        title: '歡迎使用 WeKnora',
+        title: '歡迎使用知識庫',
         desc: '只需幾步，帶你快速了解知識庫、對話與智慧代理的核心用法。點擊「下一步」開始。'
       }
     }

@@ -215,6 +215,7 @@
 </template>
 
 <script setup lang="ts">
+import { getLoginRoute } from '@/utils/platformSso'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUIStore } from '@/stores/ui'
@@ -541,7 +542,7 @@ const handleLogout = async () => {
   MessagePlugin.success(t('auth.logout'))
 
   // 跳转到登录页
-  router.push('/login')
+  router.push(getLoginRoute(true))
 }
 
 // 校准用户信息：本次会话已经用 /auth/me 校准过（main.ts 启动、登录流程）

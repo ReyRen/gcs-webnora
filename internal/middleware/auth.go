@@ -44,13 +44,15 @@ var noAuthAPI = map[string][]string{
 	// global Auth middleware must let them through — otherwise opening a
 	// share link while logged out 401s and the frontend bounces the user to
 	// /login instead of the register page (issue #1617).
-	"/api/v1/auth/invitations/lookup": {"POST"},
-	"/api/v1/auth/register-by-invite": {"POST"},
-	"/api/v1/auth/config":             {"GET"},
-	"/api/v1/auth/oidc/config":        {"GET"},
-	"/api/v1/auth/oidc/url":           {"GET"},
-	"/api/v1/auth/oidc/start":         {"GET"},
-	"/api/v1/auth/oidc/callback":      {"GET"},
+	"/api/v1/auth/invitations/lookup":    {"POST"},
+	"/api/v1/auth/register-by-invite":    {"POST"},
+	"/api/v1/auth/config":                {"GET"},
+	"/api/v1/auth/oidc/config":           {"GET"},
+	"/api/v1/auth/oidc/url":              {"GET"},
+	"/api/v1/auth/oidc/start":            {"GET"},
+	"/api/v1/auth/oidc/callback":         {"GET"},
+	"/api/v1/auth/platform-sso/config":   {"GET"},
+	"/api/v1/auth/platform-sso/exchange": {"POST"},
 	// MCP OAuth provider redirect: the third-party authorization server
 	// redirects the browser here without a WeKnora bearer token. The request
 	// is authenticated by the opaque, single-use `state` parameter instead.
@@ -138,6 +140,13 @@ func Auth(
 			return
 		}
 
+		if cfg.PlatformSSOOnlyLogin() && isLocalLoginAPI(c.Request.URL.Path, c.Request.Method) {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"success": false, "code": "platform_sso_required", "message": "请从统一平台登录后进入 WeKnora",
+			})
+			return
+		}
+
 		// 检查请求是否在无需认证的API列表中
 		if isNoAuthAPI(c.Request.URL.Path, c.Request.Method) {
 			c.Next()
@@ -159,6 +168,10 @@ func Auth(
 		if token, ok := bearerToken(c); ok {
 			bearerPresented = true
 			user, jwtTenantID, err := userService.ValidateToken(c.Request.Context(), token)
+			if errors.Is(err, types.ErrPlatformSSOUnavailable) {
+				c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"error": "Platform authentication temporarily unavailable"})
+				return
+			}
 			if err == nil && user != nil {
 				if authenticateJWTUser(c, tenantService, memberService, cfg, user, jwtTenantID) {
 					c.Next()
@@ -189,6 +202,25 @@ func Auth(
 		}
 		c.Abort()
 	}
+}
+
+// SSO provisioning calls the service directly, so disabling these HTTP entry
+// points leaves verified platform users' local accounts and workspaces intact.
+func isLocalLoginAPI(path, method string) bool {
+	if method == http.MethodPost {
+		switch path {
+		case "/api/v1/auth/login", "/api/v1/auth/register", "/api/v1/auth/register-by-invite",
+			"/api/v1/auth/auto-setup", "/api/v1/auth/change-password":
+			return true
+		}
+	}
+	if method == http.MethodGet {
+		switch path {
+		case "/api/v1/auth/oidc/url", "/api/v1/auth/oidc/start", "/api/v1/auth/oidc/callback":
+			return true
+		}
+	}
+	return false
 }
 
 // authenticateInternalDispatch authenticates a request the server dispatched

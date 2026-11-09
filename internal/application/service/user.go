@@ -229,6 +229,9 @@ func (s *userService) Register(ctx context.Context, req *types.RegisterRequest) 
 
 // Login authenticates a user and returns tokens
 func (s *userService) Login(ctx context.Context, req *types.LoginRequest) (*types.LoginResponse, error) {
+	if s.config.PlatformSSOOnlyLogin() {
+		return &types.LoginResponse{Success: false, Message: "请从统一平台登录后进入 WeKnora"}, nil
+	}
 	logger.Info(ctx, "Start user login")
 	// Get user by email
 	user, err := s.userRepo.GetUserByEmail(ctx, req.Email)
@@ -1161,6 +1164,7 @@ func (s *userService) generateTokensForTenant(
 ) (accessToken, refreshToken string, err error) {
 	// Generate access token (expires in 24 hours)
 	accessClaims := jwt.MapClaims{
+		"jti":       uuid.NewString(),
 		"user_id":   user.ID,
 		"email":     user.Email,
 		"tenant_id": activeTenantID,
@@ -1177,6 +1181,7 @@ func (s *userService) generateTokensForTenant(
 
 	// Generate refresh token (expires in 7 days)
 	refreshClaims := jwt.MapClaims{
+		"jti":     uuid.NewString(),
 		"user_id": user.ID,
 		"exp":     time.Now().Add(7 * 24 * time.Hour).Unix(),
 		"iat":     time.Now().Unix(),
@@ -1191,23 +1196,25 @@ func (s *userService) generateTokensForTenant(
 
 	// Store tokens in database
 	accessTokenRecord := &types.AuthToken{
-		ID:        uuid.New().String(),
-		UserID:    user.ID,
-		Token:     accessToken,
-		TokenType: "access_token",
-		ExpiresAt: time.Now().Add(24 * time.Hour),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		PlatformSSOSessionID: user.PlatformSSOSessionID,
+		ID:                   uuid.New().String(),
+		UserID:               user.ID,
+		Token:                accessToken,
+		TokenType:            "access_token",
+		ExpiresAt:            time.Now().Add(24 * time.Hour),
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
 	}
 
 	refreshTokenRecord := &types.AuthToken{
-		ID:        uuid.New().String(),
-		UserID:    user.ID,
-		Token:     refreshToken,
-		TokenType: "refresh_token",
-		ExpiresAt: time.Now().Add(7 * 24 * time.Hour),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		PlatformSSOSessionID: user.PlatformSSOSessionID,
+		ID:                   uuid.New().String(),
+		UserID:               user.ID,
+		Token:                refreshToken,
+		TokenType:            "refresh_token",
+		ExpiresAt:            time.Now().Add(7 * 24 * time.Hour),
+		CreatedAt:            time.Now(),
+		UpdatedAt:            time.Now(),
 	}
 
 	// Persist before returning the pair: a signed token the database has no row
@@ -1376,6 +1383,9 @@ func (s *userService) ValidateToken(ctx context.Context, tokenString string) (*t
 	if tokenRecord.TokenType == "refresh_token" {
 		return nil, 0, errors.New("refresh token cannot be used as access token")
 	}
+	if err := s.validatePlatformSSOSession(ctx, tokenRecord.PlatformSSOSessionID, userID); err != nil {
+		return nil, 0, err
+	}
 
 	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
@@ -1388,6 +1398,7 @@ func (s *userService) ValidateToken(ctx context.Context, tokenString string) (*t
 	if !user.IsActive {
 		return nil, 0, errors.New("account is disabled")
 	}
+	user.PlatformSSOSessionID = tokenRecord.PlatformSSOSessionID
 
 	// Extract active tenant from the JWT. Anything missing or unparseable
 	// falls back to the user's home tenant so old tokens (and tokens issued
@@ -1417,6 +1428,11 @@ func (s *userService) GetAccessTokenByValue(ctx context.Context, tokenString str
 	if err != nil {
 		return nil, err
 	}
+	if token != nil {
+		if err := s.validatePlatformSSOSession(ctx, token.PlatformSSOSessionID, token.UserID); err != nil {
+			return nil, err
+		}
+	}
 	return redactAuthToken(token), nil
 }
 
@@ -1429,6 +1445,11 @@ func (s *userService) GetAccessTokenByID(ctx context.Context, id string) (*types
 	token, err := s.tokenRepo.GetTokenByID(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+	if token != nil {
+		if err := s.validatePlatformSSOSession(ctx, token.PlatformSSOSessionID, token.UserID); err != nil {
+			return nil, err
+		}
 	}
 	return redactAuthToken(token), nil
 }
@@ -1539,6 +1560,9 @@ func (s *userService) RefreshToken(
 	if tokenRecord.TokenType != "refresh_token" {
 		return "", "", errors.New("not a refresh token")
 	}
+	if err := s.validatePlatformSSOSession(ctx, tokenRecord.PlatformSSOSessionID, userID); err != nil {
+		return "", "", err
+	}
 
 	// Get user
 	user, err := s.userRepo.GetUserByID(ctx, userID)
@@ -1546,6 +1570,7 @@ func (s *userService) RefreshToken(
 		return "", "", err
 	}
 
+	user.PlatformSSOSessionID = tokenRecord.PlatformSSOSessionID
 	// Revoke old refresh token
 	tokenRecord.IsRevoked = true
 	_ = s.tokenRepo.UpdateToken(ctx, tokenRecord)

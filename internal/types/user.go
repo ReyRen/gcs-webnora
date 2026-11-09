@@ -129,6 +129,8 @@ type User struct {
 	// Stored as JSON (jsonb on Postgres, TEXT on SQLite) via the
 	// driver.Valuer / sql.Scanner methods on UserPreferences.
 	Preferences UserPreferences `json:"preferences" gorm:"type:jsonb;not null;default:'{}'"`
+	// Transient context: propagate SSO association when refreshing or switching workspaces.
+	PlatformSSOSessionID *string `json:"-" gorm:"-"`
 	// Creation time of the user
 	CreatedAt time.Time `json:"created_at"`
 	// Last updated time of the user
@@ -142,6 +144,7 @@ type User struct {
 
 // AuthToken represents an authentication token
 type AuthToken struct {
+	PlatformSSOSessionID *string `json:"-" gorm:"index"`
 	// Unique identifier of the token
 	ID string `json:"id"         gorm:"type:varchar(36);primaryKey"`
 	// User ID that owns this token

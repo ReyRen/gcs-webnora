@@ -9,6 +9,9 @@ import { MessagePlugin } from 'tdesign-vue-next'
 import i18n from '@/i18n'
 import { normalizeSettingsSection } from '@/config/settingsRoute'
 import { isToolboxSection, toolboxLocation } from '@/config/toolbox'
+import { getLoginRoute, getPlatformSsoConfig, isPlatformSsoOnlyLogin, platformSsoEntryRedirect } from '@/utils/platformSso'
+import { appEntryRoute } from './appEntryRoute'
+import { KNOWLEDGE_WORKSPACE, knowledgeWorkspaceRedirect } from '@/config/knowledgeWorkspace'
 
 /** Lite /桌面 WebView 硬刷新时可能只打开 `/`，用 session 记住上次页面以便恢复 */
 const LITE_LAST_PATH_KEY = 'weknora_lite_last_path'
@@ -45,9 +48,18 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      path: "/",
-      redirect: "/platform/knowledge-bases",
+      path: '/404',
+      name: 'notFound',
+      component: () => import('../views/NotFound.vue'),
+      meta: { requiresAuth: false, requiresInit: false },
     },
+    {
+      path: '/sso/platform',
+      name: 'platformSso',
+      component: () => import('../views/auth/PlatformSso.vue'),
+      meta: { requiresAuth: false, requiresInit: false },
+    },
+    appEntryRoute,
     {
       path: "/login",
       name: "login",
@@ -282,10 +294,31 @@ async function hydrateSessionFromToken(authStore: ReturnType<typeof useAuthStore
 
 let autoSetupAttempted = false
 let liteDeepLinkRestoreDone = false
+let platformLoginPolicy: ReturnType<typeof getPlatformSsoConfig> | undefined
 
 // 路由守卫：检查认证状态和系统初始化状态
 router.beforeEach(async (to, from, next) => {
+  if (to.name === 'notFound') { next(); return }
   const authStore = useAuthStore()
+
+  try {
+    platformLoginPolicy ??= getPlatformSsoConfig().catch(error => {
+      platformLoginPolicy = undefined
+      throw error
+    })
+    await platformLoginPolicy
+  } catch {
+    // A failed policy request must never reveal a password form by fallback.
+    if (window.parent === window) next({ path: '/404', replace: true })
+    else if (to.path === '/sso/platform') next()
+    else next({ path: '/sso/platform', replace: true })
+    return
+  }
+  const platformEntry = platformSsoEntryRedirect(to.path, hasPendingOIDCCallback())
+  if (platformEntry) {
+    next({ path: platformEntry, replace: true })
+    return
+  }
 
   // OIDC 回跳登录结果依赖 App.vue 在挂载后消费 URL hash。
   // 如果这里先按“未登录”拦截到 /login，会导致回调结果没有机会落盘。
@@ -295,7 +328,16 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // Preserve bookmarks for tools that have moved out of Settings.
+  const workspaceRedirect = KNOWLEDGE_WORKSPACE && knowledgeWorkspaceRedirect(to.name)
+  if (workspaceRedirect) {
+    next({ path: workspaceRedirect, replace: true })
+    return
+  }
   if (to.path === '/platform/settings' && isToolboxSection(to.query.section)) {
+    if (KNOWLEDGE_WORKSPACE) {
+      next({ path: '/platform/settings', query: { section: 'general' }, replace: true })
+      return
+    }
     next({ ...toolboxLocation(to.query.section,
       typeof to.query.sandboxId === 'string' ? to.query.sandboxId : undefined), replace: true })
     return
@@ -321,7 +363,7 @@ router.beforeEach(async (to, from, next) => {
     if (!authStore.isLoggedIn) {
       const restored = await hydrateSessionFromToken(authStore)
       if (!restored) {
-        next('/login')
+        next(getLoginRoute())
         return
       }
     }
@@ -357,7 +399,7 @@ router.beforeEach(async (to, from, next) => {
         return
       }
 
-      if (!autoSetupAttempted) {
+      if (!autoSetupAttempted && !isPlatformSsoOnlyLogin()) {
         autoSetupAttempted = true
         localStorage.removeItem('weknora_auto_setup_failed')
         try {
@@ -372,7 +414,7 @@ router.beforeEach(async (to, from, next) => {
           // Auto-setup may be unavailable outside the native Lite shell.
         }
       }
-      next('/login')
+      next(getLoginRoute())
       return
     }
   }

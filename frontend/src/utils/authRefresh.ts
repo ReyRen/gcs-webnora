@@ -7,6 +7,7 @@
  */
 
 import { getApiBaseUrl } from './api-base'
+import { getLoginRoute } from './platformSso'
 
 const AUTH_STORAGE_KEYS = [
   'weknora_token',
@@ -36,6 +37,10 @@ export class AuthSessionChangedError extends Error {
   }
 }
 
+export class AuthServiceUnavailableError extends Error {
+  constructor() { super('Authentication service temporarily unavailable'); this.name = 'AuthServiceUnavailableError' }
+}
+
 /** Detach pending refreshes when the local session is explicitly ended. */
 export function invalidateAuthRefresh() {
   sessionGeneration += 1
@@ -61,6 +66,7 @@ function assertCurrentSession(session: AuthSession) {
 
 export type TokenRefreshResult = {
   success: boolean
+  status?: number
   data?: { token: string; refreshToken: string }
   message?: string
 }
@@ -98,7 +104,7 @@ export function isEmbedPage(): boolean {
 
 export function redirectToLogin() {
   if (typeof window === 'undefined') return
-  const loginPath = `${getApiBaseUrl()}/login`
+  const loginPath = `${getApiBaseUrl()}${getLoginRoute()}`
   if (window.location.pathname === loginPath) return
   if (isEmbedPage()) return
   window.location.href = loginPath
@@ -163,6 +169,7 @@ export async function refreshAccessTokenShared(
       if (!session.refreshToken) throw new Error(messages.pleaseRelogin)
       const response = await refresh(session.refreshToken)
       assertCurrentSession(session)
+      if (response.status === 503) throw new AuthServiceUnavailableError()
       if (!response.success || !response.data?.token) {
         throw new Error(response.message || messages.tokenRefreshFailed)
       }
@@ -173,6 +180,7 @@ export async function refreshAccessTokenShared(
       if (newRefreshToken) localStorage.setItem('weknora_refresh_token', newRefreshToken)
       return token
     } catch (error) {
+      if (error instanceof AuthServiceUnavailableError) throw error
       if (error instanceof AuthSessionChangedError) throw error
       if (activeRefresh?.session !== session || session.generation !== sessionGeneration) {
         throw new AuthSessionChangedError()

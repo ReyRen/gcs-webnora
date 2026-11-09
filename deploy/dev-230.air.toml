@@ -1,0 +1,20 @@
+root = "/workspace"
+tmp_dir = "/runtime/bin"
+
+[build]
+  cmd = "go build -ldflags=\"$(bash scripts/get_version.sh ldflags) -X 'google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn'\" -o /runtime/bin/server ./cmd/server"
+  bin = "/runtime/bin/server"
+  delay = 1500
+  exclude_dir = [".git", "frontend", "docreader", "mcp-server", "website-docs", "misc", "docs", "logs", "data", "node_modules", "tmp", "testdata", "deploy", "scripts", "dataset", "helm", "client", "cli", "packages", "miniprogram"]
+  exclude_regex = ["_test.go"]
+  include_ext = ["go", "yaml", "yml", "tpl", "tmpl", "html"]
+  log = "build-errors.log"
+  stop_on_error = false
+  send_interrupt = true
+  kill_delay = "3s"
+
+[log]
+  time = true
+
+[misc]
+  clean_on_exit = false

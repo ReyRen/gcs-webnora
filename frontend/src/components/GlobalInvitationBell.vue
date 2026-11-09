@@ -1,5 +1,5 @@
 <template>
-  <t-popup v-model:visible="panelVisible" trigger="click" placement="right-bottom" :overlay-inner-style="{ padding: 0 }">
+  <t-popup v-model:visible="panelVisible" trigger="click" :placement="placement" :overlay-inner-style="{ padding: 0 }">
     <slot :count="badgeCount" :open="panelVisible" />
     <template #content>
       <div class="notification-panel" :aria-label="t('notifications.title')">
@@ -114,10 +114,13 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { MessagePlugin } from 'tdesign-vue-next'
+import type { PopupProps } from 'tdesign-vue-next'
 import { useAuthStore } from '@/stores/auth'
 import MyInvitationsDialog from '@/components/MyInvitationsDialog.vue'
 import { notificationPreview } from '@/utils/notificationPreview'
 import { clearReadNotifications, listNotifications, markNotificationsRead, type AppNotification, type NotificationPage, type PendingNotification } from '@/api/automation'
+
+withDefaults(defineProps<{ placement?: PopupProps['placement'] }>(), { placement: 'right-bottom' })
 
 const POLL_MS = 60_000
 const authStore = useAuthStore()

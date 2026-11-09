@@ -13,6 +13,10 @@ import { consumePendingTenantSwitchToast } from '@/utils/tenantSwitch'
 import { useRoleLabel } from '@/composables/useRoleLabel'
 import { notifyLoginSuccess } from '@/utils/loginNotify'
 import { renderWorkspaceNotifyContent } from '@/utils/workspaceNotifyContent'
+import { installPlatformSsoLogout } from '@/utils/platformSso'
+import { logout as logoutAPI } from '@/api/auth'
+
+let stopPlatformSsoLogout: (() => void) | undefined
 
 // TDesign locale configs
 import enUSConfig from 'tdesign-vue-next/esm/locale/en_US'
@@ -241,6 +245,12 @@ const showPendingTenantSwitchToast = () => {
 }
 
 onMounted(() => {
+  stopPlatformSsoLogout = installPlatformSsoLogout(async () => {
+    try { await logoutAPI() } finally {
+      authStore.logout()
+      await router.replace({ path: '/sso/platform', query: { logged_out: '1' } })
+    }
+  })
   handleGlobalOIDCCallback()
   showPendingTenantSwitchToast()
 
@@ -268,6 +278,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  stopPlatformSsoLogout?.()
   if (updateCheckTimer) {
     clearInterval(updateCheckTimer)
   }

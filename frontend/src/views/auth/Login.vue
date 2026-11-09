@@ -97,7 +97,7 @@
 
     <!-- Logo - Top Left -->
     <a href="https://github.com/Tencent/WeKnora" target="_blank" class="header-logo" :title="$t('common.github')">
-      <img src="@/assets/img/weknora.png" alt="WeKnora" class="logo-image" />
+      <span class="product-title">{{ $t('menu.knowledgeBase') }}</span>
     </a>
 
     <!-- Header Links - Top Right -->
@@ -1194,10 +1194,12 @@ onMounted(async () => {
   left: 50px;
   z-index: 100;
   cursor: pointer;
+  color: var(--td-text-color-primary);
+  text-decoration: none;
 
-  .logo-image {
-    width: 120px;
-    height: auto;
+  .product-title {
+    font-size: 22px;
+    font-weight: 600;
   }
 }
 
@@ -1647,8 +1649,8 @@ onMounted(async () => {
     top: 26px;
     left: 40px;
 
-    .logo-image {
-      width: 100px;
+    .product-title {
+      font-size: 21px;
     }
   }
 
@@ -1697,8 +1699,8 @@ onMounted(async () => {
     top: 22px;
     left: 30px;
 
-    .logo-image {
-      width: 80px;
+    .product-title {
+      font-size: 20px;
     }
   }
 
@@ -1758,8 +1760,8 @@ onMounted(async () => {
     top: 18px;
     left: 20px;
 
-    .logo-image {
-      width: 70px;
+    .product-title {
+      font-size: 18px;
     }
   }
 
@@ -1829,10 +1831,6 @@ html[theme-mode="dark"] {
 
   .connection-line {
     stroke: rgba(255, 255, 255, 0.25);
-  }
-
-  .header-logo .logo-image {
-    filter: invert(1) hue-rotate(180deg) brightness(1.1);
   }
 
   .header-link {

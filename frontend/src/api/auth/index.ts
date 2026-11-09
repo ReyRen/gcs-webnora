@@ -399,7 +399,7 @@ export async function getCurrentTenant(): Promise<{ success: boolean; data?: Ten
 /**
  * 刷新Token
  */
-export async function refreshToken(refreshToken: string): Promise<{ success: boolean; data?: { token: string; refreshToken: string }; message?: string }> {
+export async function refreshToken(refreshToken: string): Promise<{ success: boolean; status?: number; data?: { token: string; refreshToken: string }; message?: string }> {
   try {
     const response: any = await post('/api/v1/auth/refresh', { refreshToken })
     if (response && response.success) {
@@ -422,6 +422,7 @@ export async function refreshToken(refreshToken: string): Promise<{ success: boo
   } catch (error: any) {
     return {
       success: false,
+      status: error?.response?.status,
       message: error.message || t('error.auth.refreshTokenFailed')
     }
   }

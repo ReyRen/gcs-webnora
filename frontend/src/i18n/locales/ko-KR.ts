@@ -183,7 +183,7 @@ export default {
     title: '자동화',
     description: 'WeKnora 도우미가 예약된 시간에 사용자를 대신해 작업을 실행합니다. 결과와 승인 대기 항목을 알려드립니다.',
     add: '새 자동화',
-    addHint: 'WeKnora 어시스턴트에게 만들어 달라고 할 수도 있습니다',
+    addHint: '어시스턴트에게 만들어 달라고 할 수도 있습니다',
     paused: '일시 중지됨',
     scheduleEnded: '종료됨',
     scheduleEndedHint: '일회성 일정이 종료되었습니다. 지금 실행하거나 실행 시간을 변경한 후 재개하세요.',
@@ -2711,7 +2711,7 @@ export default {
     askUser: '사용자에게 질문'
   },
   assistant: {
-    title: 'WeKnora 어시스턴트',
+    title: '어시스턴트',
     newConversation: '새 대화',
     history: '대화 기록',
     untitledConversation: '제목 없는 대화',
@@ -2725,10 +2725,10 @@ export default {
     },
     welcomeTitle: '무엇을 도와드릴까요?',
     agentWelcomeDesc: '이 에이전트의 설정을 확인하고, 모델을 변경하거나 검색할 수 있는 지식 베이스를 확인할 수 있습니다.',
-    welcomeDesc: 'WeKnora 사용법을 안내하고, 지식과 문서를 정리하며, 에이전트·도구·자동화 설정을 도와드릴 수 있습니다.',
+    welcomeDesc: '시스템 사용법을 안내하고, 지식과 문서를 정리하며, 에이전트·도구·자동화 설정을 도와드릴 수 있습니다.',
     help: {
       label: '어시스턴트 설명',
-      title: 'WeKnora 어시스턴트가 할 수 있는 일',
+      title: '어시스턴트가 할 수 있는 일',
       identity: '어시스턴트는 사용자 본인으로 동작합니다. 보고 수정할 수 있는 범위는 이 공간에서 가진 역할과 같으며, 그 권한을 넘지 않습니다.',
       page: '열면 현재 페이지가 함께 붙습니다. 화면의 내용을 정리하고, 에이전트와 자동화를 설정하거나, 양식을 대신 채울 수 있습니다. 버튼을 누르거나 저장하지는 않습니다.',
       access: '입력창 아래에서 권한을 바꿀 수 있습니다. 읽기 전용, 수정 전 확인, 되돌릴 수 있는 수정은 자동 실행. 삭제는 항상 확인이 필요하며, 관리자가 정한 상한은 넘을 수 없습니다.',
@@ -3267,6 +3267,7 @@ export default {
     videoNotSupported: '브라우저가 동영상 재생을 지원하지 않습니다'
   },
   organization: {
+    knowledgeSubtitle: '공유 공간을 만들거나 참여하여 지식 베이스를 함께 관리하고 공유하세요',
     cardStats: {
       members: '멤버 {count}',
       knowledgeBases: '지식 베이스 {count}',
@@ -6070,7 +6071,7 @@ export default {
       systemActor: '시스템',
       actorWithAPIKey: '{actor} · API Key · {name}',
       actorAPIKey: 'API Key · {name}',
-      viaAssistant: 'WeKnora 어시스턴트 경유',
+      viaAssistant: '어시스턴트 경유',
       knowledgeBase: '지식 베이스',
       countItems: '{count}개 항목',
       titleWithCount: '{title} 외 {count}개',
@@ -6395,7 +6396,7 @@ export default {
     }
   },
   createChat: {
-    title: '안녕하세요, WeKnora입니다 — 당신의 지식을 손끝에',
+    title: '안녕하세요, 무엇을 도와드릴까요?',
     newSessionTitle: '새 세션',
     openProject: '프로젝트 선택',
     clearProject: '바인딩 해제',
@@ -6742,7 +6743,7 @@ export default {
     registerSuccess: '가입이 완료되었습니다. 로그인해주세요',
     registerFailed: '가입 실패',
     subtitle: 'RAG Q&A, ReAct 에이전트, Wiki 지식베이스 — 대규모 언어 모델 기반 엔터프라이즈 지식 프레임워크',
-    registerSubtitle: '계정을 만들고 WeKnora를 시작하세요',
+    registerSubtitle: '계정을 만들고 지식 베이스를 시작하세요',
     emailPlaceholder: '이메일 주소 입력',
     passwordPlaceholder: '비밀번호 입력',
     confirmPasswordPlaceholder: '비밀번호 다시 입력',
@@ -9148,7 +9149,7 @@ export default {
     reopen: '사용 가이드',
     steps: {
       assistant: {
-        title: 'WeKnora 어시스턴트를 만나보세요',
+        title: '어시스턴트를 만나보세요',
         desc: 'WeKnora의 버전, 기능, 설정에 대해 질문할 수 있습니다. 현재 페이지를 바탕으로 사용자의 권한 내에서 에이전트를 만들고, 작업을 예약하고, 지식을 정리할 수도 있습니다.'
       },
       done: {
@@ -9176,7 +9177,7 @@ export default {
         desc: '모든 것의 시작점입니다. 문서, 웹페이지, FAQ를 업로드하면 WeKnora가 자동으로 분석하고 색인합니다. 여기를 클릭해 지식 베이스로 이동하세요.'
       },
       welcome: {
-        title: 'WeKnora에 오신 것을 환영합니다',
+        title: '지식 베이스에 오신 것을 환영합니다',
         desc: '몇 단계만으로 지식 베이스, 대화, 에이전트의 핵심 사용법을 안내합니다. \'다음\'을 눌러 시작하세요.'
       }
     }

@@ -1,0 +1,151 @@
+# Run from the repository root:
+# docker compose --env-file .env -p gcs-webnora-dev -f deploy/dev-230.compose.yml up -d
+# Runtime files stay outside the Mutagen synchronization root.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "3"
+
+services:
+  platform-frontend:
+    # Built separately with VITE_BASE_PATH=/weknora/. The regular Vite :5174
+    # remains the development entry; this gateway is the platform proxy upstream.
+    image: gcs-loop-nginx:1.28.0
+    container_name: gcs-webnora-platform-dev
+    logging: *default-logging
+    network_mode: host
+    command: ["nginx", "-g", "daemon off;"]
+    volumes:
+      - ./platform-sso.nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${WEBNORA_RUNTIME_DIR}/platform-dist:/usr/share/nginx/html:ro
+    profiles: ["platform-sso"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-H", "Sec-Fetch-Dest: iframe", "-o", "/dev/null", "http://127.0.0.1:5175/weknora/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: paradedb/paradedb:v0.25.11-pg17
+    container_name: gcs-webnora-postgres-dev
+    logging: *default-logging
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - ${WEBNORA_RUNTIME_DIR}/data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: gcs-webnora-redis-dev
+    logging: *default-logging
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$REDIS_PASSWORD\""]
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - ${WEBNORA_RUNTIME_DIR}/data/redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=$$REDIS_PASSWORD redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  docreader:
+    image: wechatopenai/weknora-docreader:latest
+    container_name: gcs-webnora-docreader-dev
+    logging: *default-logging
+    env_file: ../.env
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      DOCREADER_IMAGE_OUTPUT_DIR: /tmp/docreader
+    ports:
+      - "127.0.0.1:50051:50051"
+    volumes:
+      - ../docreader:/app/docreader:ro
+      - ${WEBNORA_RUNTIME_DIR}/data/docreader-tmp:/tmp/docreader
+    healthcheck:
+      test: ["CMD", "/bin/grpc_health_probe", "-addr=127.0.0.1:50051"]
+      interval: 10s
+      timeout: 10s
+      start_period: 90s
+      retries: 15
+    restart: unless-stopped
+
+  app:
+    image: gcs-webnora-go-dev:local
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.dev-230
+    container_name: gcs-webnora-app-dev
+    logging: *default-logging
+    working_dir: /workspace
+    network_mode: host
+    env_file: ../.env
+    environment:
+      PATH: /usr/local/go/bin:/runtime/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      GOTOOLCHAIN: local
+      GOPROXY: https://goproxy.cn,https://proxy.golang.org,direct
+      GOPATH: /runtime/go
+      GOMODCACHE: /runtime/cache/go-mod
+      GOCACHE: /runtime/cache/go-build
+      GOTMPDIR: /runtime/tmp
+      GOMAXPROCS: "8"
+      GOFLAGS: -p=8
+      LOCAL_STORAGE_BASE_DIR: /runtime/data/files
+      LOG_PATH: /runtime/logs/app.log
+    command: ["bash", "/workspace/scripts/dev-230.sh", "app"]
+    volumes:
+      - ..:/workspace:ro
+      - ${WEBNORA_RUNTIME_DIR}:/runtime
+      - ${WEBNORA_RUNTIME_DIR}/toolchains/go1.26.0:/usr/local/go:ro
+      - ${WEBNORA_RUNTIME_DIR}/data/docreader-tmp:/tmp/docreader:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:${SERVER_PORT:-18090}/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 600s
+      retries: 6
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+  frontend:
+    image: ${WEBNORA_NODE_IMAGE:-node:24-alpine}
+    container_name: gcs-webnora-frontend-dev
+    logging: *default-logging
+    working_dir: /workspace/frontend
+    network_mode: host
+    environment:
+      VITE_DEV_PROXY_TARGET: http://127.0.0.1:${SERVER_PORT:-18090}
+      npm_config_cache: /runtime/cache/npm
+      NODE_OPTIONS: --max-old-space-size=4096
+    command: ["sh", "/workspace/scripts/dev-230.sh", "frontend"]
+    volumes:
+      - ..:/workspace:ro
+      - ${WEBNORA_RUNTIME_DIR}:/runtime
+      - ${WEBNORA_RUNTIME_DIR}/node_modules:/workspace/frontend/node_modules
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5174/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      start_period: 120s
+      retries: 6
+    restart: unless-stopped

@@ -43,6 +43,16 @@ test.afterEach(() => {
   resetAuthRefreshStateForTests()
 })
 
+test('temporary SSO outage preserves the local credentials and current page', async () => {
+  const { store, location } = installBrowser()
+  store.weknora_token = 'access'
+  store.weknora_refresh_token = 'refresh'
+  await assert.rejects(refreshAccessTokenShared({ refresh: async () => ({ success: false, status: 503 }) }), /temporarily unavailable/)
+  assert.equal(store.weknora_token, 'access')
+  assert.equal(store.weknora_refresh_token, 'refresh')
+  assert.equal(location.href, 'http://localhost/chat')
+})
+
 test('isStreamAuthError matches the class and name-only wrappers', () => {
   assert.equal(isStreamAuthError(new StreamAuthError(401)), true)
   assert.equal(isStreamAuthError({ name: 'StreamAuthError', message: 'HTTP 401' }), true)

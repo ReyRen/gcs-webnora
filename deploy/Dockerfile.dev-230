@@ -1,0 +1,8 @@
+# The pinned Go 1.26.0 toolchain is mounted by dev-230.compose.yml.
+FROM golang:1.25
+
+ARG APT_MIRROR=mirrors.aliyun.com
+RUN sed -i "s|http://deb.debian.org|https://${APT_MIRROR}|g" /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*

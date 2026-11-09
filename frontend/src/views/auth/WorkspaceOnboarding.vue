@@ -68,6 +68,7 @@
 </template>
 
 <script setup lang="ts">
+import { getLoginRoute } from '@/utils/platformSso'
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import CreateTenantDialog from '@/components/CreateTenantDialog.vue'
@@ -118,7 +119,7 @@ async function onTenantCreated(tenant: TenantInfo) {
 async function handleLogout() {
   await logoutApi()
   authStore.logout()
-  await router.replace('/login')
+  await router.replace(getLoginRoute(true))
 }
 </script>
 
