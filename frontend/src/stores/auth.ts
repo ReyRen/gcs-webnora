@@ -64,6 +64,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   const autoAcceptInvitation = ref(false)
 
+  // Names/order do not change access. A membership or role change must refresh open resource lists.
+  const membershipAccessKey = computed(() => JSON.stringify(
+    [...memberships.value].sort((a, b) => a.tenant_id - b.tenant_id).map(m => [m.tenant_id, m.role]),
+  ))
+
   // 计算属性
   const isLoggedIn = computed(() => {
     return !!token.value && !!user.value
@@ -604,6 +609,7 @@ export const useAuthStore = defineStore('auth', () => {
     currentTenantRole,
     hasRole,
     effectiveTenantId,
+    membershipAccessKey,
     isLiteMode,
 
     // 方法

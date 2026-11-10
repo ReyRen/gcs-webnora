@@ -227,7 +227,7 @@
                   </template>
                   <template v-else>
                     <span class="member-name">{{ inviteePrimary(row) }}</span>
-                    <span v-if="row.invitee_email && row.invitee_name" class="member-email">{{ row.invitee_email
+                    <span v-if="row.invitee_email && row.invitee_email !== inviteePrimary(row)" class="member-email">{{ row.invitee_email
                       }}</span>
                   </template>
                 </div>
@@ -348,7 +348,7 @@
               <template #actions="{ row }">
                 <t-popconfirm
                   v-if="canManage && row.user_id !== currentUserId"
-                  :content="$t('tenantMember.remove.confirmBody', { name: row.username || row.email })"
+                  :content="$t('tenantMember.remove.confirmBody', { name: memberPrimary(row) })"
                   :confirm-btn="{ content: $t('tenantMember.remove.confirm'), theme: 'danger' }"
                   :cancel-btn="{ content: $t('common.cancel') }"
                   placement="left"
@@ -514,6 +514,7 @@ import { MessagePlugin } from 'tdesign-vue-next'
 import SettingDrawer from '@/components/settings/SettingDrawer.vue'
 import { copyWithToast } from '@/utils/clipboard'
 import { useAuthStore } from '@/stores/auth'
+import { userDisplayName, userSecondaryLabel } from '../../utils/userDisplay'
 import { AUDIT_ACTION_I18N_ROOTS } from '@/i18n/auditActionRegistry'
 import { auditActionLabel } from '@/i18n/auditActionLabel'
 import {
@@ -744,14 +745,11 @@ const columns = computed(() => [
 ])
 
 function memberPrimary(row: { username?: string; email?: string }) {
-  return row.username?.trim() || row.email?.trim() || '—'
+  return userDisplayName(row) || '—'
 }
 
 function memberSecondary(row: { username?: string; email?: string }) {
-  const name = row.username?.trim()
-  const mail = row.email?.trim()
-  if (name && mail) return mail
-  return ''
+  return userSecondaryLabel(row)
 }
 
 const addFormRules = {
@@ -947,11 +945,11 @@ function invitationStatusTheme(s: TenantInvitation['status']): 'primary' | 'succ
 }
 
 function inviteePrimary(row: TenantInvitation): string {
-  return row.invitee_name?.trim() || row.invitee_email?.trim() || row.invitee_user_id
+  return userDisplayName({ username: row.invitee_name, email: row.invitee_email }) || row.invitee_user_id
 }
 
 function inviterPrimary(row: TenantInvitation): string {
-  return row.inviter_name?.trim() || row.inviter_email?.trim() || row.invited_by || '—'
+  return userDisplayName({ username: row.inviter_name, email: row.inviter_email }) || row.invited_by || '—'
 }
 
 // loadInvitations is called from the same trigger as loadMembers so

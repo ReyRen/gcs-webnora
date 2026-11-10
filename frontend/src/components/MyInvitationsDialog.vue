@@ -54,15 +54,26 @@
               <span class="meta-label">{{ $t('tenantInvitation.myInbox.messageLabel') }}：</span>
               <span class="meta-value">{{ row.message }}</span>
             </span>
+            <t-alert v-if="accepted[row.id] === 'failed'" theme="warning"
+              :message="$t('tenantInvitation.myInbox.refreshFailed')" />
           </div>
         </div>
         <div class="invitation-card-actions">
-          <t-button theme="primary" size="small" :loading="acting === row.id" @click="onAccept(row)">
-            {{ $t('tenantInvitation.myInbox.acceptButton') }}
-          </t-button>
-          <t-button theme="default" variant="outline" size="small" :loading="acting === row.id" @click="onDecline(row)">
-            {{ $t('tenantInvitation.myInbox.declineButton') }}
-          </t-button>
+          <template v-if="accepted[row.id]">
+            <t-tag theme="success" size="small">{{ $t('tenantInvitation.status.accepted') }}</t-tag>
+            <t-button v-if="accepted[row.id] === 'failed'" theme="default" size="small"
+              :loading="acting === row.id" :disabled="acting !== null" @click="retryAcceptedInvitation(row)">{{ $t('common.retry') }}</t-button>
+            <t-button theme="primary" size="small" :disabled="accepted[row.id] !== 'ready' || acting !== null"
+              @click="enterWorkspace(row)">{{ $t('tenantInvitation.myInbox.openWorkspace') }}</t-button>
+          </template>
+          <template v-else>
+            <t-button theme="primary" size="small" :loading="acting === row.id" :disabled="acting !== null" @click="onAccept(row)">
+              {{ $t('tenantInvitation.myInbox.acceptButton') }}
+            </t-button>
+            <t-button theme="default" variant="outline" size="small" :disabled="acting !== null" @click="onDecline(row)">
+              {{ $t('tenantInvitation.myInbox.declineButton') }}
+            </t-button>
+          </template>
         </div>
       </li>
     </ul>
@@ -74,6 +85,9 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { useAuthStore } from '@/stores/auth'
+import { useHomeTenant } from '@/composables/useRoleLabel'
+import { navigateAfterTenantSwitch, persistLastActiveTenantPreference, stashTenantSwitchToast } from '@/utils/tenantSwitch'
+import { userDisplayName } from '../utils/userDisplay'
 import {
   listMyInvitations,
   acceptInvitation,
@@ -95,11 +109,13 @@ const visibleModel = computed({
 
 const { t, locale } = useI18n()
 const authStore = useAuthStore()
+const { isHomeTenant } = useHomeTenant()
 
 const invitations = ref<TenantInvitation[]>([])
 const loading = ref(false)
 const error = ref('')
 const acting = ref<number | null>(null)
+const accepted = ref<Record<number, 'refreshing' | 'ready' | 'failed'>>({})
 
 function roleTagTheme(role: TenantRole): 'primary' | 'warning' | 'success' | 'default' {
   switch (role) {
@@ -115,7 +131,7 @@ function roleTagTheme(role: TenantRole): 'primary' | 'warning' | 'success' | 'de
 }
 
 function inviterDisplay(row: TenantInvitation): string {
-  return row.inviter_name?.trim() || row.inviter_email?.trim() || row.invited_by || '—'
+  return userDisplayName({ username: row.inviter_name, email: row.inviter_email }) || row.invited_by || '—'
 }
 
 function formatDate(s: string): string {
@@ -134,6 +150,7 @@ function formatDate(s: string): string {
 }
 
 async function reload() {
+  accepted.value = {}
   loading.value = true
   error.value = ''
   try {
@@ -154,18 +171,14 @@ async function reload() {
 }
 
 async function onAccept(row: TenantInvitation) {
+  if (acting.value !== null || accepted.value[row.id]) return
   acting.value = row.id
   try {
     const resp = await acceptInvitation(row.id)
     if (resp.success) {
-      invitations.value = invitations.value.filter((x) => x.id !== row.id)
+      accepted.value[row.id] = 'refreshing'
       authStore.setPendingInvitationCount(Math.max(0, authStore.pendingInvitationCount - 1))
-      await authStore.refreshFromAuthMe()
-      MessagePlugin.success(
-        t('tenantInvitation.myInbox.acceptSuccess', {
-          tenant: row.tenant_name || `#${row.tenant_id}`,
-        }),
-      )
+      await refreshAcceptedInvitation(row)
     } else {
       MessagePlugin.error(resp.message || t('tenantInvitation.errors.generic'))
     }
@@ -180,7 +193,41 @@ async function onAccept(row: TenantInvitation) {
   }
 }
 
+async function refreshAcceptedInvitation(row: TenantInvitation) {
+  accepted.value[row.id] = 'refreshing'
+  try {
+    const refreshed = await authStore.refreshFromAuthMe()
+    if (!refreshed || !authStore.memberships.some(m => m.tenant_id === row.tenant_id)) {
+      throw new Error('Accepted membership could not be refreshed')
+    }
+    accepted.value[row.id] = 'ready'
+    MessagePlugin.success(t('tenantInvitation.myInbox.acceptSuccess', { tenant: row.tenant_name || `#${row.tenant_id}` }))
+  } catch {
+    accepted.value[row.id] = 'failed'
+    MessagePlugin.warning(t('tenantInvitation.myInbox.refreshFailed'))
+  }
+}
+
+async function retryAcceptedInvitation(row: TenantInvitation) {
+  if (acting.value !== null || accepted.value[row.id] !== 'failed') return
+  acting.value = row.id
+  try { await refreshAcceptedInvitation(row) } finally { acting.value = null }
+}
+
+async function enterWorkspace(row: TenantInvitation) {
+  const member = authStore.memberships.find(m => m.tenant_id === row.tenant_id)
+  if (accepted.value[row.id] !== 'ready' || !member || acting.value !== null) return
+  acting.value = row.id
+  authStore.setSelectedTenant(row.tenant_id, member.tenant_name || row.tenant_name || `#${row.tenant_id}`)
+  stashTenantSwitchToast({ name: member.tenant_name || row.tenant_name || `#${row.tenant_id}`,
+    role: t('tenantMember.role.' + member.role), roleEnum: member.role })
+  await Promise.race([persistLastActiveTenantPreference(isHomeTenant(row.tenant_id) ? null : row.tenant_id),
+    new Promise(resolve => setTimeout(resolve, 400))])
+  navigateAfterTenantSwitch()
+}
+
 async function onDecline(row: TenantInvitation) {
+  if (acting.value !== null || accepted.value[row.id]) return
   acting.value = row.id
   try {
     const resp = await declineInvitation(row.id)

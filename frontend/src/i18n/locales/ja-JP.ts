@@ -9324,6 +9324,8 @@ export default {
       acceptButton: '承諾',
       declineButton: '辞退',
       acceptSuccess: '「{tenant}」に参加しました。',
+      openWorkspace: 'スペースを開く',
+      refreshFailed: '招待は承認されましたが、スペース情報を更新できませんでした。再試行してください。',
       declineSuccess: '招待を辞退しました。',
       from: '招待者',
       tenantLabel: 'ワークスペース',

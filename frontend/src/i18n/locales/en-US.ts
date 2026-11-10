@@ -9324,6 +9324,8 @@ export default {
       acceptButton: 'Accept',
       declineButton: 'Decline',
       acceptSuccess: 'Joined "{tenant}".',
+      openWorkspace: 'Open workspace',
+      refreshFailed: 'Invitation accepted, but workspace information could not be refreshed. Please retry.',
       declineSuccess: 'Invitation declined.',
       from: 'From',
       tenantLabel: 'Workspace',
