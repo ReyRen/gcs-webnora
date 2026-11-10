@@ -31,10 +31,10 @@
         <t-table :aria-label="t('system.globalSettings.userList.title')" row-key="id" :data="filteredUsers" :columns="columns" :loading="loading" size="medium" hover>
           <template #user="{ row }">
             <div class="user-management__identity">
-              <span class="user-management__name">{{ row.username }}
+              <span class="user-management__name">{{ userDisplayName(row) }}
                 <span v-if="row.id === authStore.currentUserId" class="user-management__self">{{ t('common.me') }}</span>
               </span>
-              <span class="user-management__email">{{ row.email }}</span>
+              <span v-if="userSecondaryLabel(row)" class="user-management__email">{{ userSecondaryLabel(row) }}</span>
             </div>
           </template>
           <template #status="{ row }">
@@ -49,14 +49,14 @@
             </span>
             <t-popconfirm v-else :visible="active && pendingRole?.id === row.id"
               :content="row.is_system_admin
-                ? t('system.globalSettings.userList.confirmRevoke', { name: row.username })
-                : t('system.globalSettings.userList.confirmPromote', { name: row.username })"
+                ? t('system.globalSettings.userList.confirmRevoke', { name: userDisplayName(row) })
+                : t('system.globalSettings.userList.confirmPromote', { name: userDisplayName(row) })"
               :popup-props="{ trigger: 'context-menu', overlayClassName: 'wk-popover user-management-confirm-popup' }" placement="left" theme="warning"
               :confirm-btn="{ content: t(row.is_system_admin ? 'system.globalSettings.userList.revokeBtn' : 'system.globalSettings.userList.promoteBtn'), theme: row.is_system_admin ? 'danger' : 'primary', loading: busyId === row.id }"
               :cancel-btn="t('common.cancel')" @confirm="changeRole(row)" @cancel="pendingRole = null"
               @visible-change="(v: boolean) => { if (!v && !busyId) pendingRole = null }">
               <t-select :model-value="row.is_system_admin ? 'admin' : 'user'" :options="roleOptions"
-                :aria-label="`${row.username} · ${t('system.globalSettings.userList.colRole')}`" :borderless="true"
+                :aria-label="`${userDisplayName(row)} · ${t('system.globalSettings.userList.colRole')}`" :borderless="true"
                 class="user-management__role" :disabled="loading || locked"
                 :popup-props="{ overlayClassName: 'wk-popover user-management-role-popup' }"
                 @change="(value: unknown) => { if (value !== (row.is_system_admin ? 'admin' : 'user')) pendingRole = row }" />
@@ -76,7 +76,7 @@
               </ResetPasswordDialog>
               <t-popconfirm :visible="active && statusVisibleId === row.id" placement="left" theme="warning"
                 :popup-props="{ overlayClassName: 'wk-popover user-management-confirm-popup' }"
-                :content="t(row.is_active ? 'system.globalSettings.userList.confirmDisable' : 'system.globalSettings.userList.confirmEnable', { name: row.username })"
+                :content="t(row.is_active ? 'system.globalSettings.userList.confirmDisable' : 'system.globalSettings.userList.confirmEnable', { name: userDisplayName(row) })"
                 :confirm-btn="{ content: t(row.is_active ? 'system.globalSettings.userList.disable' : 'system.globalSettings.userList.enable'), theme: row.is_active ? 'danger' : 'primary', loading: busyId === row.id }"
                 :cancel-btn="t('common.cancel')" @visible-change="(value: boolean) => { statusVisibleId = value ? row.id : null }"
                 @confirm="changeStatus(row)">
@@ -113,6 +113,7 @@ import { useI18n } from 'vue-i18n'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { listAllUsers, setUserStatus, promoteUserToSystemAdmin, revokeSystemAdmin, type SystemAdminUser } from '@/api/system'
 import { useAuthStore } from '@/stores/auth'
+import { userDisplayName, userSecondaryLabel } from '../../utils/userDisplay'
 import CreateUserDialog from './CreateUserDialog.vue'
 import ResetPasswordDialog from './ResetPasswordDialog.vue'
 
@@ -178,7 +179,7 @@ async function changeStatus(row: SystemAdminUser) {
   try {
     const response = await setUserStatus({ user_id: row.id, is_active: !row.is_active })
     row.is_active = response.is_active
-    const message = t(row.is_active ? 'system.globalSettings.userList.enabledMsg' : 'system.globalSettings.userList.disabledMsg', { name: row.username })
+    const message = t(row.is_active ? 'system.globalSettings.userList.enabledMsg' : 'system.globalSettings.userList.disabledMsg', { name: userDisplayName(row) })
     MessagePlugin.success(message)
     announce(message)
   } catch (error) { MessagePlugin.error(errorMessage(error, 'system.globalSettings.userList.actionFailed')) }
@@ -190,7 +191,7 @@ async function changeRole(row: SystemAdminUser) {
   try {
     const updated = row.is_system_admin ? await revokeSystemAdmin(row.id) : await promoteUserToSystemAdmin({ user_id: row.id })
     row.is_system_admin = updated.is_system_admin
-    const message = t(row.is_system_admin ? 'system.globalSettings.userList.promotedMsg' : 'system.globalSettings.userList.revokedMsg', { name: row.username })
+    const message = t(row.is_system_admin ? 'system.globalSettings.userList.promotedMsg' : 'system.globalSettings.userList.revokedMsg', { name: userDisplayName(row) })
     MessagePlugin.success(message)
     announce(message)
   } catch (error) { MessagePlugin.error(errorMessage(error, 'system.globalSettings.userList.roleFailed')) }

@@ -276,6 +276,7 @@ import { auditActionLabel } from '@/i18n/auditActionLabel'
 import { listKnowledgeBaseActivity, type KnowledgeBaseActivity } from '@/api/knowledge-base'
 import type { AuditOutcome } from '@/api/tenant/audit-log'
 import { useAuthStore } from '@/stores/auth'
+import { userDisplayName } from '../../../utils/userDisplay'
 
 interface DetailField {
   key: string
@@ -528,7 +529,7 @@ function actorPersonLabel(entry: KnowledgeBaseActivity): string {
   if (!entry.actor_user_id) return t('knowledgeEditor.activity.systemActor')
   const me = authStore.user
   if (me?.id === entry.actor_user_id) {
-    return me.username?.trim() || me.email?.trim() || entry.actor_user_id.slice(0, 8)
+    return userDisplayName(me) || entry.actor_user_id.slice(0, 8)
   }
   return entry.actor_user_id.slice(0, 8)
 }

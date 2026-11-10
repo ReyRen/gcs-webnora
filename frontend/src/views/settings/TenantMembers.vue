@@ -1122,11 +1122,11 @@ function formatAuditAction(action: AuditAction): string {
 // 再退到历次分页积累的 memberDisplayByUserId，最后是原始 id。
 function actorDisplayName(userId: string): string {
   const cur = members.value.find((x) => x.user_id === userId)
-  if (cur?.username?.trim()) return cur.username.trim()
-  if (cur?.email?.trim()) return cur.email.trim()
+  const currentLabel = userDisplayName(cur)
+  if (currentLabel) return currentLabel
   const memo = memberDisplayByUserId[userId]
-  if (memo?.username?.trim()) return memo.username!.trim()
-  if (memo?.email?.trim()) return memo.email!.trim()
+  const rememberedLabel = userDisplayName(memo)
+  if (rememberedLabel) return rememberedLabel
   return userId
 }
 

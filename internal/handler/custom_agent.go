@@ -483,7 +483,7 @@ func enrichAgentCreatorNames(ctx context.Context, userSvc interfaces.UserService
 		if !ok || u == nil {
 			continue
 		}
-		ag.CreatorName = pickUserDisplayName(u)
+		ag.CreatorName = u.DisplayName()
 	}
 }
 

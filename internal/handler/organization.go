@@ -1326,7 +1326,7 @@ func (h *OrganizationHandler) ListOrgShares(c *gin.Context) {
 		}
 		// Get shared by user info
 		if user, err := h.userService.GetUserByID(ctx, s.SharedByUserID); err == nil && user != nil {
-			resp.SharedByUsername = user.Username
+			resp.SharedByUsername = user.DisplayName()
 		}
 		response = append(response, resp)
 	}
@@ -1559,7 +1559,7 @@ func (h *OrganizationHandler) ListOrgAgentShares(c *gin.Context) {
 			resp.OrganizationName = s.Organization.Name
 		}
 		if u, err := h.userService.GetUserByID(ctx, s.SharedByUserID); err == nil && u != nil {
-			resp.SharedByUsername = u.Username
+			resp.SharedByUsername = u.DisplayName()
 		}
 		response = append(response, resp)
 	}

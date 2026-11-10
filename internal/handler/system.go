@@ -2364,16 +2364,7 @@ func (h *SystemHandler) enrichSettingsModifiedBy(ctx context.Context, rows []*ty
 		if !ok || u == nil {
 			continue
 		}
-		// Username is the canonical display label; fall back to email
-		// for older rows where username may be empty (legacy seeded
-		// admins). Both empty → leave LastModifiedByName empty so the
-		// UI's UUID-prefix fallback kicks in.
-		switch {
-		case strings.TrimSpace(u.Username) != "":
-			r.LastModifiedByName = u.Username
-		case strings.TrimSpace(u.Email) != "":
-			r.LastModifiedByName = u.Email
-		}
+		r.LastModifiedByName = u.DisplayName()
 	}
 }
 

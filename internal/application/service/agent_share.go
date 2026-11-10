@@ -165,7 +165,7 @@ func (s *agentShareService) sharedAgentInfo(
 	}
 	if share.SharedByUserID != "" && s.userRepo != nil {
 		if u, err := s.userRepo.GetUserByID(ctx, share.SharedByUserID); err == nil && u != nil {
-			info.SharedByUsername = u.Username
+			info.SharedByUsername = u.DisplayName()
 		}
 	}
 	cacheKey := fmt.Sprintf("%d:%t:%s", share.SourceTenantID, share.Agent.Config.WebSearchEnabled, share.Agent.Config.WebSearchProviderID)
