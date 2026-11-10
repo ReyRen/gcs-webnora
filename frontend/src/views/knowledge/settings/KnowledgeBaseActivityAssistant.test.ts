@@ -5,7 +5,7 @@ import { fixture } from '../../../test-utils/vueFixture.ts'
 test('activity summaries preserve the exact loaded IDs and server-side filters', t => {
   const { vm } = fixture(t).component(new URL('./KnowledgeBaseActivitySettings.vue', import.meta.url), {
     'vue-i18n': { useI18n: () => ({ t: (key: string, params: unknown) => JSON.stringify({ key, params }), te: () => false, tm: () => ({}) }) },
-    '@/stores/auth': { useAuthStore: () => ({}) },
+    '@/stores/auth': { useAuthStore: () => ({ user: { id: 'current-user', username: 'current-12345678', email: 'current@test.com' } }) },
     '@/i18n/auditActionRegistry': { AUDIT_ACTION_I18N_ROOTS: { kbActivity: 'activity' } },
     '@/i18n/auditActionLabel': { auditActionLabel: () => '' },
     '@/api/knowledge-base': {},
@@ -16,6 +16,7 @@ test('activity summaries preserve the exact loaded IDs and server-side filters',
   vm.hasMore = true
   const scope = JSON.parse(JSON.parse(vm.activityAssistantQuery).params.scope)
   assert.deepEqual(scope.loaded_entry_ids, [20, 12])
+  assert.equal(vm.actorPersonLabel({ actor_user_id: 'current-user' }), 'current@test.com')
   assert.equal(scope.knowledge_base_id, 'kb-1')
   assert.equal(scope.action, 'knowledge.update')
   assert.equal(scope.outcome, 'success')

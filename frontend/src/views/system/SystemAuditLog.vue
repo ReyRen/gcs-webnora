@@ -183,6 +183,7 @@ import SettingDrawer from '@/components/settings/SettingDrawer.vue'
 import { AUDIT_ACTION_I18N_ROOTS } from '@/i18n/auditActionRegistry'
 import { auditActionLabel } from '@/i18n/auditActionLabel'
 import { useAuthStore } from '@/stores/auth'
+import { userDisplayName, userSecondaryLabel } from '../../utils/userDisplay'
 
 interface AuditDetailField {
   key: string
@@ -282,7 +283,7 @@ function formatAuditAction(action: AuditAction): string {
 function auditActorLabel(userId: string): string {
   const me = authStore.user
   if (me && me.id === userId) {
-    return me.username?.trim() || me.email?.trim() || userId.slice(0, 8)
+    return userDisplayName(me) || userId.slice(0, 8)
   }
   return userId.slice(0, 8)
 }
@@ -317,8 +318,10 @@ function auditTargetKey(row: AuditLog): string {
     if (!details) return row.target_user_id ? row.target_user_id.slice(0, 8) : ''
     const name = typeof details.target_username === 'string' ? details.target_username : ''
     const mail = typeof details.target_email === 'string' ? details.target_email : ''
-    if (name && mail) return `${name} (${mail})`
-    return name || mail || (row.target_user_id ? row.target_user_id.slice(0, 8) : '')
+    const account = { username: name, email: mail }
+    const primary = userDisplayName(account)
+    const secondary = userSecondaryLabel(account)
+    return secondary ? `${primary} (${secondary})` : primary || (row.target_user_id ? row.target_user_id.slice(0, 8) : '')
   }
   if (
     row.action === 'system.queue_task_retried'

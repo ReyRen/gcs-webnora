@@ -729,8 +729,8 @@ func filterKnowledgeBasesForAPIKeyScope(ctx context.Context, kbs []*types.Knowle
 	return filtered
 }
 
-// enrichKBCreatorNames 把 KB 列表里的 CreatorID 批量解析成展示名（username
-// 优先，退化到 email）。任意一步失败都吞掉错误：creator_name 缺失只会影响
+// enrichKBCreatorNames 把 KB 列表里的 CreatorID 批量解析成展示名（真实邮箱
+// 优先，退化到内部用户名）。任意一步失败都吞掉错误：creator_name 缺失只会影响
 // 卡片右下角的徽章展示，不该影响列表本身可用。
 func enrichKBCreatorNames(ctx context.Context, userSvc interfaces.UserService, kbs []*types.KnowledgeBase) {
 	if userSvc == nil || len(kbs) == 0 {
@@ -762,21 +762,8 @@ func enrichKBCreatorNames(ctx context.Context, userSvc interfaces.UserService, k
 		if !ok || u == nil {
 			continue
 		}
-		kb.CreatorName = pickUserDisplayName(u)
+		kb.CreatorName = u.DisplayName()
 	}
-}
-
-// pickUserDisplayName picks the field most users will recognise: Username
-// if present (it's required at registration), Email as a fallback. Used by
-// both KB and Agent list enrichment so the badge text stays consistent.
-func pickUserDisplayName(u *types.User) string {
-	if u == nil {
-		return ""
-	}
-	if u.Username != "" {
-		return u.Username
-	}
-	return u.Email
 }
 
 // TogglePinKnowledgeBase godoc
