@@ -168,10 +168,14 @@ func (s *userService) Register(ctx context.Context, req *types.RegisterRequest) 
 
 	var createdTenant *types.Tenant
 	if provisioning == types.TenantProvisioningCreatePersonal {
+		workspaceName := fmt.Sprintf("%s's Workspace", secutils.SanitizeForLog(req.Username))
+		if name := strings.TrimSpace(req.PersonalTenantName); name != "" {
+			workspaceName = name
+		}
 		// Note: RetrieverEngines is left empty - system will use defaults
 		// from RETRIEVE_DRIVER env.
 		tenant := &types.Tenant{
-			Name:        fmt.Sprintf("%s's Workspace", secutils.SanitizeForLog(req.Username)),
+			Name:        workspaceName,
 			Description: "Default workspace",
 			Status:      "active",
 		}

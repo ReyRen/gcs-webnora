@@ -251,7 +251,17 @@ func (s *userService) platformSSOUser(ctx context.Context, store interfaces.Plat
 		if len([]rune(name)) > 35 {
 			name = string([]rune(name)[:35])
 		}
-		user, err = s.Register(ctx, &types.RegisterRequest{Username: name + "-" + uuid.NewString()[:8], Email: email, Password: password, TenantProvisioning: mode})
+		workspaceName := strings.TrimSpace(secutils.SanitizeForLog(info.Name))
+		if workspaceName == "" {
+			workspaceName = name
+		}
+		if email == info.Account && !strings.HasSuffix(strings.ToLower(email), "@platform-sso.invalid") {
+			workspaceName = email
+		}
+		user, err = s.Register(ctx, &types.RegisterRequest{
+			Username: name + "-" + uuid.NewString()[:8], Email: email, Password: password,
+			TenantProvisioning: mode, PersonalTenantName: workspaceName,
+		})
 		if err != nil {
 			return nil, false, err
 		}

@@ -5,6 +5,18 @@ import type { TenantInviteCandidate } from '../../api/organization'
 
 const SEARCH_DELAY_MS = 300
 
+test('shared-space members and applicants use platform emails while preserving custom workspace names', async t => {
+  const f = await setup(t)
+  const member = { tenant_id: 9, tenant_name: '项目空间', username: 'renyuan-fff22cde', email: 'renyuan@test.com' }
+  assert.equal(f.vm.memberPrimaryLabel(member), '项目空间')
+  assert.equal(f.vm.memberSecondaryLabel(member), 'renyuan@test.com')
+  assert.equal(f.vm.memberSecondaryLabel({ ...member, tenant_name: member.email }), '')
+  assert.equal(f.vm.memberPrimaryLabel({ ...member, tenant_name: '' }), member.email)
+  assert.equal(f.vm.joinRequestApplicantLabel({ ...member, user_id: 'uid' }), member.email)
+  assert.equal(f.vm.joinRequestApplicantSecondary(member), '')
+  assert.equal(member.username, 'renyuan-fff22cde')
+})
+
 type SearchRequest = {
   orgId: string
   query: string
