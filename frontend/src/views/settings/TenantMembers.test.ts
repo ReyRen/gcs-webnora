@@ -7,6 +7,16 @@ import { fixture, flush } from '../../test-utils/vueFixture.ts'
 const SEARCH_DEBOUNCE_MS = 320
 const GENERIC_ERROR = 'tenantMember.errors.generic'
 
+test('member and invitation labels use platform emails without changing stored usernames', async t => {
+  const f = await membersFixture(t)
+  const account = { username: 'lff-fff22cde', email: 'lff@test.com' }
+  assert.equal(f.vm.memberPrimary(account), 'lff@test.com')
+  assert.equal(f.vm.memberSecondary(account), '')
+  assert.equal(f.vm.inviteePrimary({ invitee_name: account.username, invitee_email: account.email }), 'lff@test.com')
+  assert.equal(f.vm.inviterPrimary({ inviter_name: account.username, inviter_email: account.email }), 'lff@test.com')
+  assert.equal(account.username, 'lff-fff22cde')
+})
+
 type MemberRequest = {
   tenantId: number
   params: ListMembersParams

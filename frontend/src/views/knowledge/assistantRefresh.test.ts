@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import test from 'node:test'
+import test, { type TestContext } from 'node:test'
 import * as vue from 'vue'
 import * as marked from 'marked'
 import * as literalTilde from '../../utils/markedLiteralTilde.ts'
@@ -113,29 +113,42 @@ test('refreshes Wiki pages, selected content and statistics for its own KB only'
   assert.equal(vm.selectedPage.title, 'Updated title')
 })
 
-test('refreshes the mounted KB list with force for knowledge_base changes only', async t => {
+async function knowledgeListFixture(t: TestContext) {
   const f = fixture(t)
+  const auth = vue.reactive({ hasRole: () => true, membershipAccessKey: 'initial-memberships' })
+  const fetchOrganizations = t.mock.fn(async (_options: unknown) => {})
+  const fetchSharedKnowledgeBases = t.mock.fn(async (_options: unknown) => {})
+  const spaceRequests: { resolve: (value: unknown) => void }[] = []
+  const listOrganizationSharedKnowledgeBases = t.mock.fn((_id: string) => new Promise(resolve => spaceRequests.push({ resolve })))
   const fetchKnowledgeBasesForList = t.mock.fn(async (_params: unknown, _force: boolean) => [{ id: 'kb', name: 'Updated KB' }])
-  const { vm } = f.component(new URL('./KnowledgeBaseList.vue', import.meta.url), {
+  const { vm, close } = f.component(new URL('./KnowledgeBaseList.vue', import.meta.url), {
     'vue-router': { useRoute: () => ({ query: {} }), useRouter: () => ({}) },
     'vue-i18n': { useI18n: () => ({ t: (key: string) => key }) },
-    'tdesign-vue-next': { MessagePlugin: {} },
-    '@/stores/auth': { useAuthStore: () => ({ hasRole: () => true }) },
+    'tdesign-vue-next': { MessagePlugin: { error: assert.fail } },
+    '@/stores/auth': { useAuthStore: () => auth },
     '@/stores/ui': { useUIStore: () => ({}) },
     '@/stores/organization': { useOrganizationStore: () => ({
-      sharedKnowledgeBases: [], async fetchOrganizations() {}, async fetchSharedKnowledgeBases() {},
+      sharedKnowledgeBases: [], fetchOrganizations, fetchSharedKnowledgeBases,
     }) },
     '@/stores/chatResources': { useChatResourcesStore: () => ({ fetchKnowledgeBasesForList }) },
     '@/components/settings/useConfirmDelete': { useConfirmDelete: () => ({}) },
     '@/composables/useTenantModelReadiness': { useTenantModelReadiness: () => ({ loaded: vue.ref(true), isReadyForDocumentKb: vue.ref(true) }) },
     '@/composables/useListUrlState': { useListUrlState: () => ({ scope: vue.ref('all'), creator: vue.ref('all'), query: vue.ref('') }) },
     '@/composables/useResourcePins': { useResourcePins: () => ({ favorites: vue.ref([]), recents: vue.ref([]) }) },
-    '@/api/knowledge-base': {}, '@/api/organization': {}, '@/config/contextualGuides': {},
+    '@/api/knowledge-base': {}, '@/api/organization': { listOrganizationSharedKnowledgeBases }, '@/config/contextualGuides': {},
     '@/utils/index': {}, '@/utils/kbPermission': {},
     '@/utils/resourceListSearch': {}, '@/utils/card-list-badge': {}, '@/utils/resourceSorting': sorting,
   })
   await flush()
   fetchKnowledgeBasesForList.mock.resetCalls()
+  fetchOrganizations.mock.resetCalls()
+  fetchSharedKnowledgeBases.mock.resetCalls()
+  return { f, vm, close, auth, fetchKnowledgeBasesForList, fetchOrganizations, fetchSharedKnowledgeBases,
+    listOrganizationSharedKnowledgeBases, spaceRequests }
+}
+
+test('refreshes the mounted KB list with force for knowledge_base changes only', async t => {
+  const { f, vm, fetchKnowledgeBasesForList } = await knowledgeListFixture(t)
   f.emit(change('unknown.update'))
   t.mock.timers.tick(300)
   assert.equal(fetchKnowledgeBasesForList.mock.callCount(), 0)
@@ -145,4 +158,38 @@ test('refreshes the mounted KB list with force for knowledge_base changes only',
   assert.equal(fetchKnowledgeBasesForList.mock.callCount(), 1)
   assert.equal(fetchKnowledgeBasesForList.mock.calls[0].arguments[1], true)
   assert.equal(vm.kbs[0].name, 'Updated KB')
+})
+
+test('membership changes refresh open resource lists and counts without resetting the selected view', async t => {
+  const f = await knowledgeListFixture(t)
+  f.vm.keyword = 'project'
+  f.auth.membershipAccessKey = 'joined-workspace'
+  await flush()
+  assert.equal(f.fetchKnowledgeBasesForList.mock.callCount(), 1)
+  assert.equal(f.fetchKnowledgeBasesForList.mock.calls[0].arguments[1], true)
+  assert.equal((f.fetchOrganizations.mock.calls[0].arguments[0] as any).force, true)
+  assert.equal((f.fetchSharedKnowledgeBases.mock.calls[0].arguments[0] as any).force, true)
+  assert.equal(f.vm.keyword, 'project')
+  assert.equal(f.vm.spaceSelection, 'all')
+  f.close()
+  f.auth.membershipAccessKey = 'another-change'
+  await flush()
+  assert.equal(f.fetchKnowledgeBasesForList.mock.callCount(), 1, 'membership listener stops on unmount')
+})
+
+test('membership refresh replaces the selected shared scope and ignores its older in-flight response', async t => {
+  const f = await knowledgeListFixture(t)
+  f.vm.spaceSelection = 'org-1'
+  await flush()
+  f.auth.membershipAccessKey = 'joined-workspace'
+  await flush()
+  assert.equal(f.spaceRequests.length, 2)
+  f.spaceRequests[1].resolve({ success: true, data: [{ id: 'new-shared-kb' }] })
+  await flush()
+  assert.equal(f.vm.spaceKbsList[0].id, 'new-shared-kb')
+  f.spaceRequests[0].resolve({ success: true, data: [] })
+  await flush()
+  assert.equal(f.vm.spaceKbsList[0].id, 'new-shared-kb')
+  assert.equal(f.vm.spaceSelection, 'org-1')
+  assert.equal(f.vm.spaceKbsLoading, false)
 })

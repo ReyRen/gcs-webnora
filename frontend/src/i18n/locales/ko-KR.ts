@@ -622,6 +622,8 @@ export default {
       acceptButton: '수락',
       declineButton: '거절',
       acceptSuccess: '"{tenant}"에 참여했습니다.',
+      openWorkspace: '워크스페이스 열기',
+      refreshFailed: '초대는 수락되었지만 워크스페이스 정보를 새로 고치지 못했습니다. 다시 시도하세요.',
       declineSuccess: '초대를 거절했습니다.',
       from: '초대자',
       tenantLabel: '워크스페이스',

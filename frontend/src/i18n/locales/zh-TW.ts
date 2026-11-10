@@ -622,6 +622,8 @@ export default {
       acceptButton: '接受',
       declineButton: '拒絕',
       acceptSuccess: '已加入 "{tenant}"。',
+      openWorkspace: '進入空間',
+      refreshFailed: '邀請已接受，但空間資訊重新整理失敗，請重試。',
       declineSuccess: '已拒絕邀請。',
       from: '邀請人',
       tenantLabel: '空間',

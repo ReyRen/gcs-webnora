@@ -220,6 +220,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUIStore } from '@/stores/ui'
 import { useAuthStore } from '@/stores/auth'
+import { userDisplayName, userSecondaryLabel } from '../utils/userDisplay'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { logout as logoutApi } from '@/api/auth'
 import { useI18n } from 'vue-i18n'
@@ -286,8 +287,8 @@ let tenantSubmenuHideTimer: ReturnType<typeof setTimeout> | null = null
 // 用户信息直接读 auth store：启动时 main.ts 已用 /auth/me 校准过，
 // 这里不再各自拉一份，避免首屏两次 /auth/me。
 const userInfo = computed(() => ({
-  username: authStore.user?.username || t('common.defaultUser'),
-  email: authStore.user?.email || 'user@example.com',
+  username: userDisplayName(authStore.user) || t('common.defaultUser'),
+  email: userSecondaryLabel(authStore.user || {}),
   avatar: authStore.user?.avatar || '',
 }))
 

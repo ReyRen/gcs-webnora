@@ -1154,8 +1154,10 @@ const fetchList = (force = false) => {
   })
 }
 
-// 选中空间时请求该空间内全部知识库（含我共享的）
-watch(spaceSelection, (val) => {
+let spaceListRevision = 0
+// Refresh the selected scope both on navigation and after access changes.
+async function fetchSpaceKnowledgeBases(val: string) {
+  const revision = ++spaceListRevision
   // Stale URL guard: an older "协作" view used scope=shared; that view
   // was removed, so normalize back to "all" instead of letting the
   // value fall through to the per-space fetch branch (which would 404
@@ -1166,20 +1168,33 @@ watch(spaceSelection, (val) => {
   }
   if (val === 'all' || val === 'mine' || val === 'favorites' || val === 'recents' || !val) {
     spaceKbsList.value = []
+    spaceKbsLoading.value = false
     return
   }
   spaceKbsLoading.value = true
-  listOrganizationSharedKnowledgeBases(val).then((res) => {
+  try {
+    const res = await listOrganizationSharedKnowledgeBases(val)
+    if (revision !== spaceListRevision) return
     if (res.success && res.data) {
       spaceKbsList.value = res.data
       spaceCountByOrg.value = { ...spaceCountByOrg.value, [val]: res.data.length }
     } else {
       spaceKbsList.value = []
     }
-  }).finally(() => {
-    spaceKbsLoading.value = false
-  })
+  } finally {
+    if (revision === spaceListRevision) spaceKbsLoading.value = false
+  }
+}
+watch(spaceSelection, val => {
+  void fetchSpaceKnowledgeBases(val).catch(() => MessagePlugin.error(t('tenantInvitation.errors.generic')))
 }, { immediate: true })
+
+watch(() => authStore.membershipAccessKey, () => {
+  void Promise.all([
+    fetchList(true),
+    fetchSpaceKnowledgeBases(spaceSelection.value),
+  ]).catch(() => MessagePlugin.error(t('tenantInvitation.errors.generic')))
+})
 
 // Refetch when the creator filter flips. We re-pull the whole list rather
 // than filtering in-memory so the server stays the single source of truth
@@ -1217,6 +1232,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  spaceListRevision++
   window.removeEventListener('knowledgeFileUploaded', handleUploadFinishedEvent as EventListener)
 
   if (uploadRefreshTimer) {

@@ -622,6 +622,8 @@ export default {
       acceptButton: 'Accept',
       declineButton: 'Decline',
       acceptSuccess: 'Joined "{tenant}".',
+      openWorkspace: 'Открыть пространство',
+      refreshFailed: 'Приглашение принято, но не удалось обновить сведения о пространстве. Повторите попытку.',
       declineSuccess: 'Invitation declined.',
       from: 'From',
       tenantLabel: 'Workspace',

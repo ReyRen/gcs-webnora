@@ -44,6 +44,10 @@ FRONTEND_BASE_URL=https://172.18.127.67/weknora
 旧版部署已占用 PostgreSQL 136 / SQLite 52 的 SSO 数据会保留，并补齐上游同编号的凭据库表；SQLite 的重复列通过事务兼容升级处理。
 
 当前部署启用 `PLATFORM_SSO_ONLY_LOGIN=true`：`/login` 和 `/register` 返回普通 404，不提供独立登录或跳转提示页。
+
+知识管理界面的账户、成员及邀请人优先显示 SSO 已保存的平台邮箱；内部用户名和 UID 绑定不变。没有真实邮箱时才回退到用户名，不展示 `@platform-sso.invalid` 占位地址。
+
+被邀请人接受站内邀请后，立即刷新成员身份及打开着的知识库、共享资源和空间列表，并可直接点击“进入空间”。身份刷新失败会保留重试入口，不重复接受邀请；切换空间沿用现有的租户隔离与导航流程。
 iframe 打开 `/weknora/` 或 `/weknora/sso/platform` 后先加载 JS、显示 loading，再发送 ready 并等待父页回传票据。
 网关拒绝明确的顶层文档请求；缺少 `Sec-Fetch-Dest` 时允许加载 SPA，由浏览器窗口判断让独立访问显示 404。
 HTTP IP 地址可能不带 Fetch Metadata，不能以缺少该头作为拒绝 iframe 的条件。身份仍以父页面来源、nonce 和后端验票为准。
