@@ -40,7 +40,8 @@ FRONTEND_BASE_URL=https://172.18.127.67/weknora
 ```
 
 合并现有 `SSRF_WHITELIST_EXTRA`，不要覆盖其他已放行主机。关闭 SSO 或缺少配置时入口不会授予匿名权限。
-启动自动应用 PostgreSQL 136 / SQLite 52 迁移，增加身份映射和会话记录，原业务接口及用户主表结构保持兼容。
+启动自动应用 PostgreSQL 137 / SQLite 53 迁移，增加身份映射和会话记录，原业务接口及用户主表结构保持兼容。
+旧版部署已占用 PostgreSQL 136 / SQLite 52 的 SSO 数据会保留，并补齐上游同编号的凭据库表；SQLite 的重复列通过事务兼容升级处理。
 
 当前部署启用 `PLATFORM_SSO_ONLY_LOGIN=true`：`/login` 和 `/register` 返回普通 404，不提供独立登录或跳转提示页。
 iframe 打开 `/weknora/` 或 `/weknora/sso/platform` 后先加载 JS、显示 loading，再发送 ready 并等待父页回传票据。

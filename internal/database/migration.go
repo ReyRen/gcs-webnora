@@ -143,6 +143,11 @@ func RunMigrationsWithOptions(dsn string, opts MigrationOptions) error {
 		}
 	}
 	defer m.Close()
+	if strings.HasPrefix(dsn, "sqlite3://") {
+		if err := reconcileLegacyPlatformSSOSQLite(dsn, opts.SQLiteDBPath, m); err != nil {
+			return captureMigrationFailure(m, err)
+		}
+	}
 
 	// Check current version and dirty state before migration
 	oldVersion, oldDirty, versionErr := m.Version()

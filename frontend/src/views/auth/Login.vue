@@ -1198,7 +1198,7 @@ onMounted(async () => {
   text-decoration: none;
 
   .product-title {
-    font-size: 22px;
+    font-size: var(--app-text-4xl);
     font-weight: 600;
   }
 }
@@ -1650,7 +1650,7 @@ onMounted(async () => {
     left: 40px;
 
     .product-title {
-      font-size: 21px;
+      font-size: var(--app-text-3xl);
     }
   }
 
@@ -1700,7 +1700,7 @@ onMounted(async () => {
     left: 30px;
 
     .product-title {
-      font-size: 20px;
+      font-size: var(--app-text-3xl);
     }
   }
 
@@ -1761,7 +1761,7 @@ onMounted(async () => {
     left: 20px;
 
     .product-title {
-      font-size: 18px;
+      font-size: var(--app-text-2xl);
     }
   }
 

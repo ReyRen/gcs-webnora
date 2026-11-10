@@ -147,8 +147,8 @@ function openSettings() {
 .workspace-nav, .workspace-actions { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .workspace-nav-link, .workspace-button {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-  min-height: 32px; padding: 0 10px; border-radius: 6px;
-  color: var(--td-text-color-secondary); font: inherit; font-size: 13px;
+  min-height: 32px; padding: 0 10px; border-radius: var(--app-radius-sm);
+  color: var(--td-text-color-secondary); font: inherit; font-size: var(--app-text-md);
   text-decoration: none; border: 0; background: transparent; cursor: pointer; white-space: nowrap;
   &:hover { background: var(--td-bg-color-container-hover); color: var(--td-text-color-primary); }
   &:focus-visible { outline: 2px solid var(--td-brand-color); outline-offset: 2px; }
@@ -158,17 +158,17 @@ function openSettings() {
 .workspace-picker span { max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
 .workspace-icon-button { width: 32px; padding: 0; }
 .workspace-menu { width: 248px; max-width: calc(100vw - 40px); max-height: min(480px, 75vh); overflow-y: auto; padding: 4px; }
-.workspace-menu-title { padding: 7px 10px; color: var(--td-text-color-placeholder); font-size: 12px; }
+.workspace-menu-title { padding: 7px 10px; color: var(--td-text-color-placeholder); font-size: var(--app-text-sm); }
 .workspace-menu-item {
   display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px;
-  text-align: left; border: 0; border-radius: 5px; background: transparent;
-  color: var(--td-text-color-primary); font: inherit; font-size: 13px; cursor: pointer;
+  text-align: left; border: 0; border-radius: var(--app-radius-xs); background: transparent;
+  color: var(--td-text-color-primary); font: inherit; font-size: var(--app-text-md); cursor: pointer;
   &:hover, &:focus-visible { background: var(--td-bg-color-container-hover); }
   &.is-current { color: var(--td-brand-color); }
 }
 .workspace-menu-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px;
   > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  small { font-size: 11px; color: var(--td-text-color-placeholder); }
+  small { font-size: var(--app-text-xs); color: var(--td-text-color-placeholder); }
 }
 .workspace-create { border-top: 1px solid var(--td-component-border); border-radius: 0; margin-top: 4px; }
 :deep(.tenant-selector) { margin: 0; padding: 0; border: 0; }

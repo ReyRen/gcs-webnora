@@ -60,3 +60,15 @@ docker exec -e VITE_BASE_PATH=/weknora/ gcs-webnora-frontend-dev npm run build -
 
 如需构建原完整界面，可在构建时增加 `-e VITE_KNOWLEDGE_WORKSPACE=false`。
 此开关只控制前端布局和入口，不替代后端权限校验。
+
+## 上游同步约定
+
+2026-11-10 合并腾讯上游 `cbdcebabf48c5ee2d6868b370326aa8341703f62`，纳入基线后的 82 个提交。
+保留统一平台专用验票、用户与空间绑定、iframe 握手及知识库工作区布局；检索、解析、分块和其他业务更新沿用上游。
+上游完整覆盖同一需求时采用上游实现；同一文件发生变化不代表功能重复，不能据此整文件覆盖。
+
+上游凭据库保留 PostgreSQL 136 / SQLite 52；本分支 SSO 改为 137 / 53。
+升级会补齐旧 SSO 部署缺失的凭据库表，并保留身份映射、加密会话和本地 Token 关联；SQLite 旧版本使用事务桥接。
+迁移回归覆盖全新库、上游库、旧 SSO 库，以及重复启动。
+
+前端完整测试包含 Bash 交互测试；Alpine Node 镜像需先安装 `bash`，运行 Vite 本身不依赖它。

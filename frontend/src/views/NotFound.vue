@@ -12,5 +12,5 @@ onUnmounted(() => { document.title = previousTitle })
 
 <style scoped>
 .not-found { min-height: 100vh; padding: 24px; box-sizing: border-box; color: #000; background: #fff; font-family: serif; }
-h1 { margin: 0; font-size: 32px; font-weight: bold; }
+h1 { margin: 0; font-size: var(--app-text-4xl); font-weight: bold; }
 </style>

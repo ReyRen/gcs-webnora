@@ -2125,6 +2125,8 @@ export default {
       listDocuments: 'Список документов',
       todoWrite: 'Управление планами',
       askUser: 'Вопрос пользователю',
+      requestSecureForm: 'Запрос учётных данных',
+      browserFillSecret: 'Ввод учётных данных',
       knowledgeGraphExtract: 'Извлечение графа знаний',
       thinking: 'Размышление',
       attachmentParsing: 'Разбор вложения',
@@ -2476,9 +2478,31 @@ export default {
       unansweredTag: 'Без ответа',
       submitFailed: 'Не удалось отправить',
     },
+    secureForm: {
+      onlyFillInto: 'Будет введено только на: {domains}',
+      observedAt: 'Браузер открыт на: {origin}',
+      originUnknown: 'Не удалось определить страницу в браузере. Убедитесь, что открыт сайт, на который вы входите',
+      originMismatch: 'Браузер открыт на {origin}, а не на сайте для входа. Проверьте перед вводом',
+      originInsecure: 'Страница в браузере не использует HTTPS, учётные данные не будут введены',
+      savedAccount: 'Сохранённая учётная запись',
+      useNew: 'Ввести новые логин и пароль',
+      username: 'Логин',
+      password: 'Пароль',
+      saveToVault: 'Сохранить в хранилище',
+      useOnce: 'Использовать один раз',
+      fill: 'Ввести',
+      decline: 'Отклонить',
+      submittedHidden: 'Отправлено (содержимое скрыто)',
+      declined: 'Отклонено',
+      timedOut: 'Время истекло',
+      canceled: 'Отменено',
+      submitFailed: 'Не удалось отправить',
+      savedButClosed: 'Учётные данные сохранены в хранилище, но этот запрос уже завершён',
+    },
     promptDock: {
       approvalTitle: 'Требуется ваша проверка',
       oauthTitle: 'Требуется авторизация',
+      secureFormTitle: 'Нужны ваши учётные данные',
       waiting: 'Ожидает вашего ответа',
       handle: 'Ответить',
       pager: '{current} / {total}',
@@ -2577,8 +2601,7 @@ export default {
     },
     hostApproval: {
       titleDelete: 'Подтвердите удаление файлов',
-      titleDangerous: 'Подтвердите опасную операцию',
-      titleDenied: 'Песочница заблокировала команду; нужен доступ к каталогу',
+      titleDenied: 'WeKnora хочет получить доступ к следующему каталогу',
       titleGeneric: 'Нужно ваше подтверждение',
       command: 'Команда',
       cwd: 'Каталог',
@@ -2596,7 +2619,25 @@ export default {
       rejectedTag: 'Отклонено',
       submitted: 'Отправлено',
       submitFailed: 'Не удалось отправить',
-      userRejected: 'Отклонено пользователем'
+      userRejected: 'Отклонено пользователем',
+      titleFileWrite: 'Запись файла вне рабочей области',
+      fileOnly: 'Разрешается только этот файл',
+      writeMode: 'Режим',
+      writeModeOverwrite: 'Перезапись',
+      writeModeAppend: 'Добавление',
+      writeModeEdit: 'Правка',
+      writeBytes: '{bytes} байт',
+      preview: 'Содержимое',
+      previewTruncated: 'Показаны первые 64 КБ',
+      env: 'Переменные окружения',
+      skillName: 'Навык',
+      stdin: 'Стандартный ввод',
+      script: 'Скрипт, который запускает команда'
+    },
+    hostReview: {
+      reviewing: 'Идёт автопроверка…',
+      approved: 'Одобрено автоматически: {reason}',
+      denied: 'Автопроверка отклонила: {reason}'
     }
   },
   kbSettings: {
@@ -5824,11 +5865,14 @@ export default {
         // Display names for the builtin attributes the gallery itself
         // declares. Attributes contributed by other sources fall back to the
         // pipeline's own wording (see the imageAttr namespace).
+        sourcePage: 'Страница {page}',
         attr: {
           builtin_caption: 'Описание',
           builtin_caption_description: 'Описание изображения, сгенерированное моделью.',
           builtin_ocr_text: 'OCR-текст',
           builtin_ocr_text_description: 'Текст, извлечённый из изображения OCR.',
+          builtin_page: 'Страница документа',
+          builtin_page_description: 'Группировка по исходному документу, затем по странице PDF; изображения без номера страницы идут в конце документа.',
           builtin_created_at: 'Время создания',
           builtin_created_at_description: 'Когда был создан фрагмент исходного документа.',
           builtin_updated_at: 'Время изменения',
@@ -6482,6 +6526,13 @@ export default {
       toggleOn: 'Включить веб-поиск',
       toggleOff: 'Выключить веб-поиск',
       notConfigured: 'Веб-поиск не настроен'
+    },
+    hostApprovalMode: {
+      ask: 'Спрашивать меня',
+      askHint: 'Удаление и запись вне рабочей области требуют вашего подтверждения',
+      auto: 'Одобрять за меня',
+      autoHint: 'Модель решает за вас, не отвлекая',
+      switchFailed: 'Не удалось сменить режим одобрения'
     }
   },
   manualEditor: {
@@ -7030,6 +7081,32 @@ export default {
       saveFailed: 'Не удалось выполнить: {message}'
     }
   },
+  credentialVault: {
+    title: 'Хранилище учётных данных',
+    description: 'Когда агент входит на сайт в браузере песочницы, он может использовать сохранённые здесь учётные записи. Пароли хранятся в зашифрованном виде и больше не показываются, их можно только задать заново. Введённый пароль попадает в браузер песочницы, где работает и агент, поэтому используйте сохранённые входы только с доверенными агентами и сайтами.',
+    unavailable: 'На сервере не настроен действительный SYSTEM_AES_KEY, поэтому сохранять учётные данные нельзя.',
+    loading: 'Загрузка…',
+    loadFailed: 'Не удалось загрузить',
+    empty: 'Сохранённых учётных данных пока нет. Когда агент попросит войти, выберите на карточке «Сохранить в хранилище».',
+    add: 'Добавить',
+    edit: 'Изменить',
+    delete: 'Удалить',
+    deleteConfirm: 'Удалить эти учётные данные?',
+    save: 'Сохранить',
+    saved: 'Сохранено',
+    deleted: 'Удалено',
+    saveFailed: 'Не удалось сохранить',
+    titleLabel: 'Название',
+    site: 'Сайт',
+    domains: 'Разрешённые домены',
+    domainsHint: 'Через запятую, не более 5; сам сайт включается всегда',
+    username: 'Логин',
+    password: 'Пароль',
+    newPassword: 'Новый пароль',
+    passwordHint: 'Оставьте пустым, чтобы не менять',
+    lastUsed: 'Последнее использование: {time}',
+    never: 'Не использовалось',
+  },
   envVarSettings: {
     title: 'Ключи песочницы',
     host: {
@@ -7203,9 +7280,16 @@ export default {
     statsIndexedMessages: 'Проиндексированные сообщения',
     statsNotConfigured: 'Индексация сообщений не настроена',
     statsNotConfiguredDesc: 'Включите и выберите модель Embedding для автоматической индексации сообщений',
+    clearIndexLabel: 'Очистить индекс сообщений',
+    clearIndexDescription: 'Приостановить индексацию и очистить поисковый индекс сообщений этого рабочего пространства. Чаты и сообщения сохранятся.',
+    clearIndexButton: 'Очистить индекс',
+    clearIndexConfirm: 'Очистить индекс сообщений всех участников этого рабочего пространства? Индексация будет приостановлена. Чаты и сообщения не будут удалены, старые сообщения не будут автоматически проиндексированы заново. Это действие нельзя отменить.',
     toasts: {
       saveSuccess: 'Конфигурация управления сообщениями сохранена',
-      saveFailed: 'Не удалось сохранить конфигурацию: {message}'
+      saveFailed: 'Не удалось сохранить конфигурацию: {message}',
+      loadFailed: 'Не удалось загрузить настройки или статистику индекса сообщений',
+      clearSuccess: 'Индекс сообщений очищен. Индексация приостановлена до повторного включения.',
+      clearFailed: 'Очистка индекса не завершена. Проверьте текущее состояние и повторите попытку: {message}'
     }
   },
   vectorStoreSettings: {
@@ -8069,6 +8153,10 @@ export default {
       dataExtensions: 'Данные и расширения',
       systemAdministration: 'Системное администрирование',
       platform: 'Платформа'
+    },
+    hostApprovalDefault: {
+      title: 'Одобрение действий по умолчанию',
+      description: 'Когда агент удаляет файлы или пишет вне рабочей области, здесь выбирается: спрашивать вас каждый раз или пусть решает модель. Новые чаты начинают отсюда; в текущем чате режим меняется слева от поля ввода.'
     }
   },
   agent: {

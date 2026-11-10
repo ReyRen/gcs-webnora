@@ -45,6 +45,7 @@ async function setup(t: TestContext) {
     'tdesign-vue-next': { MessagePlugin: messages },
     '@/stores/organization': { useOrganizationStore: () => organizationStore },
     '@/stores/auth': { useAuthStore: () => ({ hasRole: () => true, canAccessAllTenants: false }) },
+    '@/config/knowledgeWorkspace': { KNOWLEDGE_WORKSPACE: true },
     '@/composables/useModalShell': { useModalShell: () => ({ markClean() {}, requestClose() {} }) },
     '@/utils/clipboard': { copyWithToast: async () => undefined },
     '@/assets/img/agent.svg': { default: '' },

@@ -2125,6 +2125,8 @@ export default {
       listDocuments: '문서 목록 보기',
       todoWrite: '계획 관리',
       askUser: '사용자에게 질문',
+      requestSecureForm: '자격 증명 요청',
+      browserFillSecret: '자격 증명 입력',
       knowledgeGraphExtract: '지식 그래프 추출',
       thinking: '사고',
       attachmentParsing: '첨부 파일 파싱',
@@ -2476,9 +2478,31 @@ export default {
       unansweredTag: '답변 없음',
       submitFailed: '제출 실패',
     },
+    secureForm: {
+      onlyFillInto: '입력 대상: {domains}에만',
+      observedAt: '브라우저 현재 페이지: {origin}',
+      originUnknown: '브라우저의 현재 페이지를 확인할 수 없습니다. 로그인할 사이트가 열려 있는지 확인하세요',
+      originMismatch: '브라우저의 현재 페이지({origin})가 로그인할 사이트와 다릅니다. 확인한 후 입력하세요',
+      originInsecure: '브라우저 페이지가 HTTPS가 아니므로 자격 증명이 입력되지 않습니다',
+      savedAccount: '저장된 계정',
+      useNew: '새 사용자 이름과 비밀번호 사용',
+      username: '사용자 이름',
+      password: '비밀번호',
+      saveToVault: '보관함에 저장',
+      useOnce: '이번만 사용',
+      fill: '입력',
+      decline: '거절',
+      submittedHidden: '제출됨(내용 숨김)',
+      declined: '거절함',
+      timedOut: '시간 초과',
+      canceled: '취소됨',
+      submitFailed: '제출 실패',
+      savedButClosed: '자격 증명은 보관함에 저장되었지만 이 요청은 이미 종료되었습니다',
+    },
     promptDock: {
       approvalTitle: '검토가 필요합니다',
       oauthTitle: '인증이 필요합니다',
+      secureFormTitle: '자격 증명 입력이 필요합니다',
       waiting: '응답 대기 중',
       handle: '응답하기',
       pager: '{current} / {total}',
@@ -2577,8 +2601,7 @@ export default {
     },
     hostApproval: {
       titleDelete: '파일을 삭제하기 전에 확인이 필요합니다',
-      titleDangerous: '위험한 작업 확인',
-      titleDenied: '샌드박스가 이 명령을 차단했습니다. 다음 디렉터리에 대한 접근이 필요합니다',
+      titleDenied: 'WeKnora가 다음 디렉터리에 접근하려고 합니다',
       titleGeneric: '확인이 필요합니다',
       command: '명령',
       cwd: '디렉터리',
@@ -2596,7 +2619,25 @@ export default {
       rejectedTag: '거부됨',
       submitted: '제출됨',
       submitFailed: '제출 실패',
-      userRejected: '사용자가 거부함'
+      userRejected: '사용자가 거부함',
+      titleFileWrite: '작업 공간 밖 파일에 쓰기',
+      fileOnly: '이 파일만 허용합니다',
+      writeMode: '방식',
+      writeModeOverwrite: '덮어쓰기',
+      writeModeAppend: '추가',
+      writeModeEdit: '편집',
+      writeBytes: '{bytes}바이트',
+      preview: '내용',
+      previewTruncated: '처음 64KB만 표시',
+      env: '환경 변수',
+      skillName: '스킬',
+      stdin: '표준 입력',
+      script: '명령이 실행하는 스크립트'
+    },
+    hostReview: {
+      reviewing: '자동 검토 중…',
+      approved: '자동 승인됨: {reason}',
+      denied: '자동 검토에서 거부됨: {reason}'
     }
   },
   kbSettings: {
@@ -5824,11 +5865,14 @@ export default {
         // Display names for the builtin attributes the gallery itself
         // declares. Attributes contributed by other sources fall back to the
         // pipeline's own wording (see the imageAttr namespace).
+        sourcePage: '{page}페이지',
         attr: {
           builtin_caption: '설명',
           builtin_caption_description: '모델이 생성한 이미지 설명',
           builtin_ocr_text: 'OCR 텍스트',
           builtin_ocr_text_description: 'OCR 로 이미지에서 추출한 텍스트',
+          builtin_page: '문서 페이지',
+          builtin_page_description: '원본 문서별로 묶어 PDF 페이지순으로 정렬합니다. 페이지를 알 수 없는 이미지는 각 문서의 마지막에 표시됩니다.',
           builtin_created_at: '생성 시간',
           builtin_created_at_description: '소유 문서 조각이 생성된 시각',
           builtin_updated_at: '수정 시간',
@@ -6482,6 +6526,13 @@ export default {
       toggleOn: '웹 검색 켜기',
       toggleOff: '웹 검색 끄기',
       notConfigured: '웹 검색 엔진이 구성되지 않았습니다'
+    },
+    hostApprovalMode: {
+      ask: '승인 요청',
+      askHint: '삭제와 작업 공간 밖 쓰기는 확인합니다',
+      auto: '대신 승인',
+      autoHint: '모델이 대신 판단하며 방해하지 않습니다',
+      switchFailed: '승인 모드를 전환하지 못했습니다'
     }
   },
   manualEditor: {
@@ -7030,6 +7081,32 @@ export default {
       saveFailed: '작업 실패: {message}'
     }
   },
+  credentialVault: {
+    title: '자격 증명 보관함',
+    description: 'agent가 샌드박스 브라우저에서 사이트에 로그인할 때 여기에 저장한 계정을 사용할 수 있습니다. 비밀번호는 암호화되어 저장되며 화면에 다시 표시되지 않고 다시 설정만 할 수 있습니다. 입력된 비밀번호는 agent도 실행되는 샌드박스 브라우저로 들어가므로 신뢰할 수 있는 agent와 사이트에서만 사용하세요.',
+    unavailable: '서버에 유효한 SYSTEM_AES_KEY가 설정되지 않아 자격 증명을 저장할 수 없습니다.',
+    loading: '불러오는 중…',
+    loadFailed: '불러오기 실패',
+    empty: '저장된 자격 증명이 아직 없습니다. agent가 로그인을 요청하면 카드에서 "보관함에 저장"을 선택하세요.',
+    add: '자격 증명 추가',
+    edit: '편집',
+    delete: '삭제',
+    deleteConfirm: '이 자격 증명을 삭제할까요?',
+    save: '저장',
+    saved: '저장됨',
+    deleted: '삭제됨',
+    saveFailed: '저장 실패',
+    titleLabel: '이름',
+    site: '사이트',
+    domains: '입력 허용 도메인',
+    domainsHint: '쉼표로 구분, 최대 5개. 사이트 자체는 항상 포함됩니다',
+    username: '사용자 이름',
+    password: '비밀번호',
+    newPassword: '새 비밀번호',
+    passwordHint: '비워 두면 변경하지 않습니다',
+    lastUsed: '마지막 사용: {time}',
+    never: '사용한 적 없음',
+  },
   envVarSettings: {
     title: '샌드박스 키',
     host: {
@@ -7203,9 +7280,16 @@ export default {
     statsIndexedMessages: '인덱싱된 메시지',
     statsNotConfigured: '메시지 인덱싱 미설정',
     statsNotConfiguredDesc: '활성화하고 Embedding 모델을 선택하면 대화 메시지가 자동으로 벡터화 인덱싱됩니다',
+    clearIndexLabel: '메시지 인덱스 비우기',
+    clearIndexDescription: '인덱싱을 일시 중지하고 이 작업 공간의 메시지 검색 인덱스를 비웁니다. 대화와 메시지는 유지됩니다.',
+    clearIndexButton: '인덱스 비우기',
+    clearIndexConfirm: '이 작업 공간의 모든 구성원의 메시지 인덱스를 비우시겠습니까? 인덱싱이 일시 중지됩니다. 대화와 메시지는 삭제되지 않으며 이전 메시지는 자동으로 다시 인덱싱되지 않습니다. 이 작업은 취소할 수 없습니다.',
     toasts: {
       saveSuccess: '메시지 관리 설정이 저장되었습니다',
-      saveFailed: '설정 저장 실패: {message}'
+      saveFailed: '설정 저장 실패: {message}',
+      loadFailed: '메시지 인덱스 설정 또는 통계를 불러올 수 없습니다',
+      clearSuccess: '메시지 인덱스를 비웠습니다. 다시 활성화할 때까지 인덱싱이 일시 중지됩니다.',
+      clearFailed: '인덱스 정리가 완료되지 않았습니다. 현재 상태를 확인한 후 다시 시도하세요: {message}'
     }
   },
   vectorStoreSettings: {
@@ -8069,6 +8153,10 @@ export default {
       dataExtensions: '데이터 및 확장',
       systemAdministration: '시스템 관리',
       platform: '플랫폼'
+    },
+    hostApprovalDefault: {
+      title: '기본 실행 권한 승인',
+      description: '에이전트가 파일을 삭제하거나 작업 영역 밖에 쓸 때, 매번 물어볼지 모델이 대신 승인할지를 정합니다. 새 대화는 여기서 시작하고, 현재 대화는 입력창 왼쪽에서 바꿀 수 있습니다.'
     }
   },
   agent: {

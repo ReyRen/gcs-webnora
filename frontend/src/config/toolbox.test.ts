@@ -71,6 +71,7 @@ function declaration(name: string) {
 test('legacy shortcuts close settings and route to the selected tool and sandbox', () => {
   const calls: unknown[] = []
   const redirect = runInNewContext(`${declaration('redirectToToolbox')}\nredirectToToolbox`, {
+    KNOWLEDGE_WORKSPACE: false,
     isToolboxSection, toolboxLocation,
     uiStore: { closeSettings: () => calls.push('close') },
     router: { push: (location: unknown) => calls.push(location) },

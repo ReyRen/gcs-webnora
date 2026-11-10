@@ -2127,6 +2127,8 @@ export default {
       listDocuments: '瀏覽文件清單',
       todoWrite: '計劃管理',
       askUser: '向使用者提問',
+      requestSecureForm: '請求登入憑證',
+      browserFillSecret: '填寫登入憑證',
       knowledgeGraphExtract: '知識圖譜抽取',
       thinking: '思考',
       attachmentParsing: '解析附件',
@@ -2478,9 +2480,31 @@ export default {
       unansweredTag: '未回答',
       submitFailed: '提交失敗',
     },
+    secureForm: {
+      onlyFillInto: '只會填入：{domains}',
+      observedAt: '瀏覽器目前頁面：{origin}',
+      originUnknown: '無法確認瀏覽器目前頁面，請確認瀏覽器停在要登入的網站上再填寫',
+      originMismatch: '瀏覽器目前頁面（{origin}）與要登入的網站不一致，請確認後再填寫',
+      originInsecure: '瀏覽器目前頁面不是 HTTPS，憑證不會填入',
+      savedAccount: '已儲存的帳號',
+      useNew: '使用新的帳號密碼',
+      username: '帳號',
+      password: '密碼',
+      saveToVault: '儲存到保險庫',
+      useOnce: '僅用一次',
+      fill: '填寫',
+      decline: '拒絕',
+      submittedHidden: '已提交（內容不顯示）',
+      declined: '已拒絕',
+      timedOut: '逾時未填寫',
+      canceled: '已取消',
+      submitFailed: '提交失敗',
+      savedButClosed: '憑證已儲存到保險庫，但這次請求已結束',
+    },
     promptDock: {
       approvalTitle: '需要你審核',
       oauthTitle: '需要你授權',
+      secureFormTitle: '需要你填寫憑據',
       waiting: '等待你處理',
       handle: '去處理',
       pager: '{current} / {total}',
@@ -2579,8 +2603,7 @@ export default {
     },
     hostApproval: {
       titleDelete: '刪除檔案前需要你確認',
-      titleDangerous: '危險操作確認',
-      titleDenied: '命令被沙盒攔截，需要存取以下目錄',
+      titleDenied: 'WeKnora 想要存取以下目錄',
       titleGeneric: '需要你確認',
       command: '命令',
       cwd: '目錄',
@@ -2598,7 +2621,25 @@ export default {
       rejectedTag: '已拒絕',
       submitted: '已提交',
       submitFailed: '提交失敗',
-      userRejected: '使用者拒絕'
+      userRejected: '使用者拒絕',
+      titleFileWrite: '寫入工作區外的檔案',
+      fileOnly: '只授權這一個檔案',
+      writeMode: '方式',
+      writeModeOverwrite: '覆寫',
+      writeModeAppend: '附加',
+      writeModeEdit: '編輯',
+      writeBytes: '{bytes} 位元組',
+      preview: '內容',
+      previewTruncated: '只顯示前 64 KB',
+      env: '環境變數',
+      skillName: '技能',
+      stdin: '標準輸入',
+      script: '命令執行的腳本'
+    },
+    hostReview: {
+      reviewing: '自動審批中…',
+      approved: '已自動批准：{reason}',
+      denied: '自動審批已拒絕：{reason}'
     }
   },
   kbSettings: {
@@ -5825,11 +5866,14 @@ export default {
         // Display names for the builtin attributes the gallery itself
         // declares. Attributes contributed by other sources fall back to the
         // pipeline's own wording (see the imageAttr namespace).
+        sourcePage: '第 {page} 頁',
         attr: {
           builtin_caption: '描述',
           builtin_caption_description: '模型生成的圖片描述',
           builtin_ocr_text: 'OCR 文字',
           builtin_ocr_text_description: 'OCR 從圖片中提取的文字',
+          builtin_page: '文件頁碼',
+          builtin_page_description: '依來源文件分組，再依 PDF 頁碼排序；未知頁碼放在文件末尾。',
           builtin_created_at: '建立時間',
           builtin_created_at_description: '所屬文件片段的建立時間',
           builtin_updated_at: '更新時間',
@@ -6483,6 +6527,13 @@ export default {
       toggleOn: '開啟網路搜尋',
       toggleOff: '關閉網路搜尋',
       notConfigured: '未設定網路搜尋引擎'
+    },
+    hostApprovalMode: {
+      ask: '請求批准',
+      askHint: '刪除和工作區外的寫入都要你確認',
+      auto: '替我審批',
+      autoHint: '由模型代你判斷，不打擾你',
+      switchFailed: '切換審批模式失敗'
     }
   },
   manualEditor: {
@@ -7031,6 +7082,32 @@ export default {
       saveFailed: '操作失敗：{message}'
     }
   },
+  credentialVault: {
+    title: '憑證保險庫',
+    description: 'agent 在沙盒瀏覽器裡登入網站時，可以直接使用這裡儲存的帳號。密碼加密儲存，頁面上不會再顯示，只能重新設定。填寫時密碼會進入沙盒瀏覽器，agent 在同一沙盒中執行，請只對信任的 agent 和網站使用。',
+    unavailable: '伺服器沒有設定有效的 SYSTEM_AES_KEY，暫時無法儲存憑證。',
+    loading: '載入中…',
+    loadFailed: '載入失敗',
+    empty: '還沒有儲存的憑證。agent 請求登入時，你可以在卡片上選擇「儲存到保險庫」。',
+    add: '新增憑證',
+    edit: '編輯',
+    delete: '刪除',
+    deleteConfirm: '確定刪除這條憑證嗎？',
+    save: '儲存',
+    saved: '已儲存',
+    deleted: '已刪除',
+    saveFailed: '儲存失敗',
+    titleLabel: '名稱',
+    site: '網站',
+    domains: '允許填入的網域',
+    domainsHint: '以逗號分隔，最多 5 個，網站本身一律包含在內',
+    username: '帳號',
+    password: '密碼',
+    newPassword: '新密碼',
+    passwordHint: '留空表示不修改',
+    lastUsed: '最近使用：{time}',
+    never: '從未使用',
+  },
   envVarSettings: {
     title: '沙箱金鑰',
     host: {
@@ -7204,9 +7281,16 @@ export default {
     statsIndexedMessages: '已索引訊息',
     statsNotConfigured: '訊息索引未設定',
     statsNotConfiguredDesc: '啟用並選擇 Embedding 模型後，對話訊息將自動向量化索引',
+    clearIndexLabel: '清空訊息索引',
+    clearIndexDescription: '暫停訊息索引，並清空目前空間的訊息搜尋索引。原始對話和訊息會保留。',
+    clearIndexButton: '清空索引',
+    clearIndexConfirm: '確定清空目前空間所有成員的訊息索引嗎？訊息索引將暫停，原始對話和訊息不會刪除，歷史訊息也不會自動重新索引。此操作無法復原。',
     toasts: {
       saveSuccess: '訊息管理設定已儲存',
-      saveFailed: '儲存設定失敗: {message}'
+      saveFailed: '儲存設定失敗: {message}',
+      loadFailed: '無法載入訊息索引設定或統計資訊',
+      clearSuccess: '訊息索引已清空，索引已暫停，可在準備好後重新啟用。',
+      clearFailed: '索引清理未完成，請檢查目前狀態後重試：{message}'
     }
   },
   vectorStoreSettings: {
@@ -8070,6 +8154,10 @@ export default {
       dataExtensions: '資料與擴展',
       systemAdministration: '系統管理',
       platform: '平台'
+    },
+    hostApprovalDefault: {
+      title: '預設執行權限審批',
+      description: '智慧體要刪除檔案，或寫入工作區以外時，用這裡決定是每次詢問你，還是由模型替你審批。新工作階段按這個開始；目前工作階段可在輸入框左側切換。'
     }
   },
   agent: {

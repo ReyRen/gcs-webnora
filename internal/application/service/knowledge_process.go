@@ -471,18 +471,22 @@ func (s *knowledgeService) processChunks(ctx context.Context,
 
 	// Resolve the vector store before deleting anything: failing after the
 	// cleanup below would leave the document with neither old nor new chunks.
+	var retrieveEngine *retriever.CompositeRetrieveEngine
 	tenantInfo := ctx.Value(types.TenantInfoContextKey).(*types.Tenant)
-	retrieveEngine, err := retriever.CreateRetrieveEngineForKB(
-		ctx, s.retrieveEngine, s.ownership, tenantInfo.ID, kb.VectorStoreID)
-	if err != nil && embeddingModel != nil {
-		// Indexing below dereferences the engine; a nil one would panic.
-		logger.Errorf(ctx, "processChunks resolve vector store for KB %s failed: %v", kb.ID, err)
-		if errors.Is(err, retriever.ErrVectorStoreUnavailable) {
-			// The lookup failed, not the store: retry rather than fail.
-			return fmt.Errorf("resolve vector store: %w", err)
+	var err error
+	if embeddingModel != nil {
+		retrieveEngine, err = retriever.CreateRetrieveEngineForKB(
+			ctx, s.retrieveEngine, s.ownership, tenantInfo.ID, kb.VectorStoreID)
+		if err != nil {
+			// Indexing below dereferences the engine; a nil one would panic.
+			logger.Errorf(ctx, "processChunks resolve vector store for KB %s failed: %v", kb.ID, err)
+			if errors.Is(err, retriever.ErrVectorStoreUnavailable) {
+				// The lookup failed, not the store: retry rather than fail.
+				return fmt.Errorf("resolve vector store: %w", err)
+			}
+			return s.failKnowledgeAtEmbedding(ctx, kb, knowledge, werrors.ErrCodeVectorStoreWriteFailed,
+				"failed to resolve vector store", err)
 		}
-		return s.failKnowledgeAtEmbedding(ctx, kb, knowledge, werrors.ErrCodeVectorStoreWriteFailed,
-			"failed to resolve vector store", err)
 	}
 
 	// 幂等性处理：清理旧的chunks和索引数据，避免重复数据
@@ -4272,6 +4276,9 @@ func (s *knowledgeService) ProcessDocument(ctx context.Context, t *asynq.Task) e
 			storedImages = append(storedImages, remoteImages...)
 		}
 
+		// 本地和远程图片分批收集，合并后恢复文档顺序供图片任务编号。
+		storedImages = docparser.SortImagesByPosition(convertResult.MarkdownContent, storedImages)
+
 		logger.Infof(ctx, "Resolved %d total images for knowledge %s", len(storedImages), knowledge.ID)
 	}
 
@@ -4484,7 +4491,11 @@ func (s *knowledgeService) convert(
 	}
 	if err != nil {
 		code, message := docReaderFailure(err)
-		logger.Errorf(ctx, "[convert] DocReader failed knowledge=%s code=%s: %v", knowledge.ID, code, err)
+		if engineMessage := parseFailureMessageForEngine(parserEngine, err); engineMessage != "" {
+			message = engineMessage
+		}
+		logger.Errorf(ctx, "[convert] DocReader failed knowledge=%s engine=%s code=%s: %v",
+			knowledge.ID, parserEngine, code, err)
 		result, taskErr := s.failKnowledge(ctx, knowledge, isLastRetry, "%s", message)
 		s.failStageWithRetry(ctx, knowledge.ID, types.StageDocReader,
 			code, message, err, taskErr != nil)
