@@ -307,6 +307,11 @@ export const useAuthStore = defineStore('auth', () => {
   ) => {
     memberships.value = Array.isArray(list) ? list : []
     localStorage.setItem('weknora_memberships', JSON.stringify(memberships.value))
+    // A remembered selection must not keep an older workspace name after /auth/me.
+    const selected = memberships.value.find(m => Number(m.tenant_id) === selectedTenantId.value)
+    if (selected?.tenant_name && selected.tenant_name !== selectedTenantName.value) {
+      setSelectedTenant(selected.tenant_id, selected.tenant_name)
+    }
   }
 
   // setPendingInvitationCount is the explicit setter used by the

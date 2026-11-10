@@ -115,6 +115,28 @@ func platformWriteUser(w http.ResponseWriter) {
 	_, _ = w.Write([]byte(`{"code":"0000","content":{"userId":446,"userAccount":"中文账号","userName":"平台用户"}}`))
 }
 
+func TestPlatformSSOPersonalWorkspaceUsesVerifiedEmail(t *testing.T) {
+	for _, tc := range []struct{ account, name, want string }{
+		{"new.user@test.com", "平台用户", "new.user@test.com"},
+		{"内部账号", "平台用户", "平台用户"},
+		{"placeholder@platform-sso.invalid", "平台用户", "平台用户"},
+	} {
+		t.Run(tc.account, func(t *testing.T) {
+			s, store := platformTestService(t, func(w http.ResponseWriter, _ *http.Request) { platformWriteUser(w) })
+			tenants := &provisioningTenantService{}
+			s.tenantService = tenants
+			user, fresh, err := s.platformSSOUser(t.Context(), store, s.config.PlatformSSO,
+				&platformSSOUser{ID: "new-user", Account: tc.account, Name: tc.name}, types.TenantProvisioningCreatePersonal)
+			if err != nil || !fresh {
+				t.Fatalf("provisioning: fresh=%v err=%v", fresh, err)
+			}
+			if tenants.createdName != tc.want || user.Username == tc.want || user.TenantID != 99 {
+				t.Fatalf("workspace=%q user=%q tenant=%d", tenants.createdName, user.Username, user.TenantID)
+			}
+		})
+	}
+}
+
 func TestPlatformSSOLoginBindingRefreshAndRevocation(t *testing.T) {
 	ctx := context.Background()
 	var outage atomic.Bool

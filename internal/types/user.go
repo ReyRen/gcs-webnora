@@ -227,6 +227,9 @@ type RegisterRequest struct {
 	// own tenancy semantics. Empty preserves the historical behaviour and is
 	// treated as create_personal by UserService.Register.
 	TenantProvisioning TenantProvisioningMode `json:"-"`
+	// PersonalTenantName is an optional server-controlled display name. SSO
+	// provisioning uses the verified platform email instead of its internal username.
+	PersonalTenantName string `json:"-"`
 }
 
 // AdminCreateUserRequest is the payload for a SystemAdmin provisioning a

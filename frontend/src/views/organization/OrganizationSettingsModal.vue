@@ -772,6 +772,7 @@ import {
 import { useOrganizationStore } from '@/stores/organization'
 import { useAuthStore } from '@/stores/auth'
 import { KNOWLEDGE_WORKSPACE } from '@/config/knowledgeWorkspace'
+import { userDisplayName, userSecondaryLabel } from '../../utils/userDisplay'
 import SpaceAvatar from '@/components/SpaceAvatar.vue'
 import agentIconSrc from '@/assets/img/agent.svg'
 import agentIconActiveSrc from '@/assets/img/agent-green.svg'
@@ -1174,30 +1175,24 @@ const filteredJoinRequests = computed(() => {
 })
 
 function joinRequestApplicantLabel(req: JoinRequestResponse): string {
-  return req.username || req.email || req.user_id
+  return userDisplayName(req) || req.user_id
 }
 
 function joinRequestApplicantSecondary(req: JoinRequestResponse): string {
-  const primary = joinRequestApplicantLabel(req)
-  if (req.email && req.email !== primary) return req.email
-  return ''
+  return userSecondaryLabel(req)
 }
 
 // 成员行的主标题：优先展示「空间名」，回退到代表用户名 / 空间 ID。Plan 3
 // 之后每一行成员都对应一个空间，UI 必须先于代表用户呈现空间身份，
 // 否则用户会误以为这是按"人"加进来的。
 const memberPrimaryLabel = (m: OrganizationMember): string => {
-  return m.tenant_name || m.username || `tenant#${m.tenant_id}`
+  return m.tenant_name || userDisplayName(m) || `tenant#${m.tenant_id}`
 }
 
-// 副标题：主标题展示的是空间名时，副标题展示代表用户名；如果主标题已经
-// 是用户名（无 tenant_name 时的回退），副标题留空，避免重复信息。
-// 邮箱在空间成员列表里没什么用（不是邀请人需要联系的对象），不展示。
+// 保留空间身份，并用平台邮箱标识代表用户；不重复已作为空间名显示的邮箱。
 const memberSecondaryLabel = (m: OrganizationMember): string => {
-  if (m.tenant_name && m.username) {
-    return m.username
-  }
-  return ''
+  const account = userDisplayName(m)
+  return m.tenant_name && account !== memberPrimaryLabel(m) ? account : ''
 }
 
 // Owner identification is tenant-keyed after Plan 3 (#1303): the org's

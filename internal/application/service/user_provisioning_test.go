@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/Tencent/WeKnora/internal/types"
@@ -36,11 +37,36 @@ func (r *provisioningUserRepo) UpdateUser(_ context.Context, user *types.User) e
 type provisioningTenantService struct {
 	interfaces.TenantService
 	createCalls int
+	createdName string
 }
 
-func (s *provisioningTenantService) CreateTenant(context.Context, *types.Tenant) (*types.Tenant, error) {
+func (s *provisioningTenantService) CreateTenant(_ context.Context, tenant *types.Tenant) (*types.Tenant, error) {
 	s.createCalls++
+	s.createdName = tenant.Name
 	return &types.Tenant{ID: 99}, nil
+}
+
+func TestRegistrationCannotSupplyServerWorkspaceName(t *testing.T) {
+	var req types.RegisterRequest
+	if err := json.Unmarshal([]byte(`{"username":"alice","email":"alice@example.com","personalTenantName":"other","PersonalTenantName":"other","tenant_provisioning":"tenantless"}`), &req); err != nil {
+		t.Fatal(err)
+	}
+	if req.PersonalTenantName != "" || req.TenantProvisioning != "" {
+		t.Fatal("public registration supplied server-only provisioning context")
+	}
+}
+
+func TestLocalRegistrationKeepsDefaultWorkspaceName(t *testing.T) {
+	tenants := &provisioningTenantService{}
+	svc := &userService{userRepo: &provisioningUserRepo{}, tenantService: tenants}
+	if _, err := svc.Register(context.Background(), &types.RegisterRequest{
+		Username: "alice", Email: "alice@example.com", Password: "supersecret",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if tenants.createdName != "alice's Workspace" {
+		t.Fatalf("local workspace name = %q", tenants.createdName)
+	}
 }
 
 func (s *provisioningTenantService) GetTenantByID(_ context.Context, id uint64) (*types.Tenant, error) {
