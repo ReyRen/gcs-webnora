@@ -617,6 +617,7 @@ definitions:
     - 2200
     - 2201
     - 2300
+    - 2400
     type: integer
     x-enum-varnames:
     - ErrBadRequest
@@ -643,6 +644,7 @@ definitions:
     - ErrVectorStoreBindingInvalid
     - ErrVectorStoreUnavailable
     - ErrModelInUse
+    - ErrImportPrerequisiteMissing
   github_com_Tencent_WeKnora_internal_handler_dto.CredentialFieldMetadata:
     properties:
       configured:
@@ -1225,6 +1227,156 @@ definitions:
     - APIAnthropicMessages
     - APIGoogleGenerativeAI
     - APIOllama
+  github_com_Tencent_WeKnora_internal_models_api.FunctionCall:
+    properties:
+      arguments:
+        description: JSON string
+        type: string
+      name:
+        type: string
+    type: object
+  github_com_Tencent_WeKnora_internal_models_api.FunctionDef:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      parameters:
+        type: object
+    type: object
+  github_com_Tencent_WeKnora_internal_models_api.ImageURL:
+    properties:
+      detail:
+        description: '"auto", "low", "high"'
+        type: string
+      url:
+        description: URL or base64 data URI
+        type: string
+    type: object
+  github_com_Tencent_WeKnora_internal_models_api.Message:
+    properties:
+      content:
+        description: 消息内容
+        type: string
+      images:
+        description: Images are image URLs for multimodal input (current user message
+          only).
+        items:
+          type: string
+        type: array
+      multi_content:
+        description: 多内容消息（文本+图片）
+        items:
+          $ref: '#/definitions/github_com_Tencent_WeKnora_internal_models_api.MessageContentPart'
+        type: array
+      name:
+        description: Function/tool name (for tool role)
+        type: string
+      reasoning_content:
+        description: |-
+          ReasoningContent 是 assistant 推理类模型上一轮输出的思考内容。部分供应商
+          （MiMo、DeepSeek V3.2+、Kimi K2.5+）要求多轮对话中把 assistant 的
+          reasoning_content 原样回传，否则会以 400 拒绝请求；其他不要求的供应商会
+          忽略未知字段。Anthropic 则要求把 thinking block 连同签名一起回放。
+        type: string
+      reasoning_metadata:
+        allOf:
+        - $ref: '#/definitions/github_com_Tencent_WeKnora_internal_types.ProviderMetadata'
+        description: |-
+          ReasoningMetadata carries opaque provider state that must round-trip
+          with the assistant turn but has no protocol-neutral representation:
+          OpenAI Responses reasoning items (encrypted_content), OpenRouter
+          reasoning_details, and so on. Keyed by protocol / vendor namespace.
+      reasoning_signature:
+        description: |-
+          ReasoningSignature is the provider-issued signature that must accompany
+          ReasoningContent when it is replayed (Anthropic thinking blocks, Gemini
+          thought signatures on text parts). Empty when the provider issues none.
+        type: string
+      role:
+        description: 角色：system, user, assistant, tool
+        type: string
+      tool_call_id:
+        description: Tool call ID (for tool role)
+        type: string
+      tool_calls:
+        description: Tool calls (for assistant role)
+        items:
+          $ref: '#/definitions/github_com_Tencent_WeKnora_internal_models_api.ToolCall'
+        type: array
+    type: object
+  github_com_Tencent_WeKnora_internal_models_api.MessageContentPart:
+    properties:
+      image_url:
+        allOf:
+        - $ref: '#/definitions/github_com_Tencent_WeKnora_internal_models_api.ImageURL'
+        description: For type="image_url"
+      text:
+        description: For type="text"
+        type: string
+      type:
+        description: '"text" or "image_url"'
+        type: string
+    type: object
+  github_com_Tencent_WeKnora_internal_models_api.Options:
+    properties:
+      format:
+        description: 响应格式定义
+        type: object
+      frequency_penalty:
+        description: 频率惩罚
+        type: number
+      max_completion_tokens:
+        type: integer
+      max_tokens:
+        description: |-
+          MaxTokens and MaxCompletionTokens are aliases for one completion budget.
+          Callers may set either; CompletionBudget() prefers MaxCompletionTokens.
+          The outbound JSON carries exactly one field, named per vendor.
+        type: integer
+      parallel_tool_calls:
+        description: 是否允许并行工具调用（默认 nil 表示由模型决定）
+        type: boolean
+      presence_penalty:
+        description: 存在惩罚
+        type: number
+      reasoning_effort:
+        allOf:
+        - $ref: '#/definitions/github_com_Tencent_WeKnora_internal_models_api.ReasoningEffort'
+        description: |-
+          ReasoningEffort selects the thinking intensity. Empty leaves the model
+          default untouched (no thinking fields are sent unless the vendor
+          requires them on every request).
+      seed:
+        description: 随机种子
+        type: integer
+      temperature:
+        description: 温度参数
+        type: number
+      thinking:
+        description: |-
+          Thinking is the legacy on/off switch. Prefer ReasoningEffort; when both
+          are set ReasoningEffort wins. true maps to ReasoningAuto, false to
+          ReasoningOff.
+        type: boolean
+      thinking_budget_tokens:
+        description: |-
+          ThinkingBudgetTokens caps the thinking tokens where the vendor exposes a
+          budget (Anthropic budget_tokens, DashScope thinking_budget, Gemini
+          thinkingBudget). 0 leaves the vendor default.
+        type: integer
+      tool_choice:
+        description: ToolChoice is "auto", "required", "none" or a specific tool name.
+        type: string
+      tools:
+        description: 可用工具列表
+        items:
+          $ref: '#/definitions/github_com_Tencent_WeKnora_internal_models_api.Tool'
+        type: array
+      top_p:
+        description: Top P 参数
+        type: number
+    type: object
   github_com_Tencent_WeKnora_internal_models_api.ReasoningEffort:
     enum:
     - "off"
@@ -1248,6 +1400,26 @@ definitions:
   github_com_Tencent_WeKnora_internal_models_api.ThinkingLevelMap:
     additionalProperties:
       type: string
+    type: object
+  github_com_Tencent_WeKnora_internal_models_api.Tool:
+    properties:
+      function:
+        $ref: '#/definitions/github_com_Tencent_WeKnora_internal_models_api.FunctionDef'
+      type:
+        description: '"function"'
+        type: string
+    type: object
+  github_com_Tencent_WeKnora_internal_models_api.ToolCall:
+    properties:
+      function:
+        $ref: '#/definitions/github_com_Tencent_WeKnora_internal_models_api.FunctionCall'
+      id:
+        type: string
+      provider_metadata:
+        $ref: '#/definitions/github_com_Tencent_WeKnora_internal_types.ToolCallMetadata'
+      type:
+        description: '"function"'
+        type: string
     type: object
   github_com_Tencent_WeKnora_internal_models_limiter.RuntimeStat:
     properties:
@@ -4262,9 +4434,7 @@ definitions:
     properties:
       attrs:
         additionalProperties: {}
-        description: |-
-          Attrs is the observed attribute map (e.g. contain.text, contain.data_visual)
-          produced by the attribute pipeline. Absent keys mean "not observed".
+        description: Attrs 包含模型观察属性和解析器的 source.* 来源位置；缺少来源键表示未知。
         type: object
       caption:
         description: Caption is the model-generated image description.
@@ -6952,6 +7122,8 @@ definitions:
       name:
         type: string
       owner_id:
+        type: string
+      owner_name:
         type: string
       owner_tenant_id:
         description: |-
@@ -11535,6 +11707,21 @@ definitions:
         type: string
         x-agent: true
     type: object
+  internal_handler.HarnessModelRequest:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/github_com_Tencent_WeKnora_internal_models_api.Message'
+        minItems: 1
+        type: array
+      model_revision:
+        type: string
+      options:
+        $ref: '#/definitions/github_com_Tencent_WeKnora_internal_models_api.Options'
+    required:
+    - messages
+    - model_revision
+    type: object
   internal_handler.HybridSearchResponse:
     properties:
       data:
@@ -11711,7 +11898,14 @@ definitions:
   internal_handler.KBModelConfigRequest:
     properties:
       asr_config:
-        $ref: '#/definitions/github_com_Tencent_WeKnora_internal_types.ASRConfig'
+        properties:
+          enabled:
+            type: boolean
+          language:
+            type: string
+          model_id:
+            type: string
+        type: object
       documentSplitting:
         description: 文档分块配置
         properties:
@@ -11801,7 +11995,24 @@ definitions:
         description: 存储引擎选择（"local" | "minio" | "cos"），影响文档上传与文档内图片存储，参数从全局设置读取
         type: string
       vlm_config:
-        $ref: '#/definitions/github_com_Tencent_WeKnora_internal_types.VLMConfig'
+        properties:
+          api_key:
+            type: string
+          base_url:
+            type: string
+          custom_instructions:
+            type: string
+          description_language:
+            type: string
+          enabled:
+            type: boolean
+          interface_type:
+            type: string
+          model_id:
+            type: string
+          model_name:
+            type: string
+        type: object
     required:
     - llmModelId
     type: object
@@ -25101,6 +25312,48 @@ paths:
       - Bearer: []
       - ApiKeyAuth: []
       summary: 移除模型的单个凭据字段
+      tags:
+      - 模型管理
+  /models/{id}/harness-chat:
+    post:
+      consumes:
+      - application/json
+      description: 使用当前已授权空间的模型执行流式推理；不返回模型凭据。配置版本变更时拒绝过期请求。
+      parameters:
+      - description: 模型 ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 模型请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler.HarnessModelRequest'
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: 'StreamResponse SSE；末尾为 event: end'
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_Tencent_WeKnora_internal_errors.AppError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_Tencent_WeKnora_internal_errors.AppError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_Tencent_WeKnora_internal_errors.AppError'
+      security:
+      - Bearer: []
+      - ApiKeyAuth: []
+      summary: 调用统一配置的对话模型
       tags:
       - 模型管理
   /models/catalog/resolve:

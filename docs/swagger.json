@@ -16206,6 +16206,73 @@
                 }
             }
         },
+        "/models/{id}/harness-chat": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "使用当前已授权空间的模型执行流式推理；不返回模型凭据。配置版本变更时拒绝过期请求。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "模型管理"
+                ],
+                "summary": "调用统一配置的对话模型",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "模型 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "模型请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler.HarnessModelRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "StreamResponse SSE；末尾为 event: end",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_errors.AppError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_errors.AppError"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_errors.AppError"
+                        }
+                    }
+                }
+            }
+        },
         "/notifications": {
             "get": {
                 "security": [
@@ -26372,7 +26439,8 @@
                 2103,
                 2200,
                 2201,
-                2300
+                2300,
+                2400
             ],
             "x-enum-varnames": [
                 "ErrBadRequest",
@@ -26398,7 +26466,8 @@
                 "ErrAgentInvalidTemperature",
                 "ErrVectorStoreBindingInvalid",
                 "ErrVectorStoreUnavailable",
-                "ErrModelInUse"
+                "ErrModelInUse",
+                "ErrImportPrerequisiteMissing"
             ]
         },
         "github_com_Tencent_WeKnora_internal_handler_dto.CredentialFieldMetadata": {
@@ -27229,6 +27298,191 @@
                 "APIOllama"
             ]
         },
+        "github_com_Tencent_WeKnora_internal_models_api.FunctionCall": {
+            "type": "object",
+            "properties": {
+                "arguments": {
+                    "description": "JSON string",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Tencent_WeKnora_internal_models_api.FunctionDef": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parameters": {
+                    "type": "object"
+                }
+            }
+        },
+        "github_com_Tencent_WeKnora_internal_models_api.ImageURL": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "description": "\"auto\", \"low\", \"high\"",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "URL or base64 data URI",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Tencent_WeKnora_internal_models_api.Message": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "消息内容",
+                    "type": "string"
+                },
+                "images": {
+                    "description": "Images are image URLs for multimodal input (current user message only).",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "multi_content": {
+                    "description": "多内容消息（文本+图片）",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_models_api.MessageContentPart"
+                    }
+                },
+                "name": {
+                    "description": "Function/tool name (for tool role)",
+                    "type": "string"
+                },
+                "reasoning_content": {
+                    "description": "ReasoningContent 是 assistant 推理类模型上一轮输出的思考内容。部分供应商\n（MiMo、DeepSeek V3.2+、Kimi K2.5+）要求多轮对话中把 assistant 的\nreasoning_content 原样回传，否则会以 400 拒绝请求；其他不要求的供应商会\n忽略未知字段。Anthropic 则要求把 thinking block 连同签名一起回放。",
+                    "type": "string"
+                },
+                "reasoning_metadata": {
+                    "description": "ReasoningMetadata carries opaque provider state that must round-trip\nwith the assistant turn but has no protocol-neutral representation:\nOpenAI Responses reasoning items (encrypted_content), OpenRouter\nreasoning_details, and so on. Keyed by protocol / vendor namespace.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_types.ProviderMetadata"
+                        }
+                    ]
+                },
+                "reasoning_signature": {
+                    "description": "ReasoningSignature is the provider-issued signature that must accompany\nReasoningContent when it is replayed (Anthropic thinking blocks, Gemini\nthought signatures on text parts). Empty when the provider issues none.",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "角色：system, user, assistant, tool",
+                    "type": "string"
+                },
+                "tool_call_id": {
+                    "description": "Tool call ID (for tool role)",
+                    "type": "string"
+                },
+                "tool_calls": {
+                    "description": "Tool calls (for assistant role)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_models_api.ToolCall"
+                    }
+                }
+            }
+        },
+        "github_com_Tencent_WeKnora_internal_models_api.MessageContentPart": {
+            "type": "object",
+            "properties": {
+                "image_url": {
+                    "description": "For type=\"image_url\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_models_api.ImageURL"
+                        }
+                    ]
+                },
+                "text": {
+                    "description": "For type=\"text\"",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "\"text\" or \"image_url\"",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Tencent_WeKnora_internal_models_api.Options": {
+            "type": "object",
+            "properties": {
+                "format": {
+                    "description": "响应格式定义",
+                    "type": "object"
+                },
+                "frequency_penalty": {
+                    "description": "频率惩罚",
+                    "type": "number"
+                },
+                "max_completion_tokens": {
+                    "type": "integer"
+                },
+                "max_tokens": {
+                    "description": "MaxTokens and MaxCompletionTokens are aliases for one completion budget.\nCallers may set either; CompletionBudget() prefers MaxCompletionTokens.\nThe outbound JSON carries exactly one field, named per vendor.",
+                    "type": "integer"
+                },
+                "parallel_tool_calls": {
+                    "description": "是否允许并行工具调用（默认 nil 表示由模型决定）",
+                    "type": "boolean"
+                },
+                "presence_penalty": {
+                    "description": "存在惩罚",
+                    "type": "number"
+                },
+                "reasoning_effort": {
+                    "description": "ReasoningEffort selects the thinking intensity. Empty leaves the model\ndefault untouched (no thinking fields are sent unless the vendor\nrequires them on every request).",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_models_api.ReasoningEffort"
+                        }
+                    ]
+                },
+                "seed": {
+                    "description": "随机种子",
+                    "type": "integer"
+                },
+                "temperature": {
+                    "description": "温度参数",
+                    "type": "number"
+                },
+                "thinking": {
+                    "description": "Thinking is the legacy on/off switch. Prefer ReasoningEffort; when both\nare set ReasoningEffort wins. true maps to ReasoningAuto, false to\nReasoningOff.",
+                    "type": "boolean"
+                },
+                "thinking_budget_tokens": {
+                    "description": "ThinkingBudgetTokens caps the thinking tokens where the vendor exposes a\nbudget (Anthropic budget_tokens, DashScope thinking_budget, Gemini\nthinkingBudget). 0 leaves the vendor default.",
+                    "type": "integer"
+                },
+                "tool_choice": {
+                    "description": "ToolChoice is \"auto\", \"required\", \"none\" or a specific tool name.",
+                    "type": "string"
+                },
+                "tools": {
+                    "description": "可用工具列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_models_api.Tool"
+                    }
+                },
+                "top_p": {
+                    "description": "Top P 参数",
+                    "type": "number"
+                }
+            }
+        },
         "github_com_Tencent_WeKnora_internal_models_api.ReasoningEffort": {
             "type": "string",
             "enum": [
@@ -27256,6 +27510,36 @@
             "type": "object",
             "additionalProperties": {
                 "type": "string"
+            }
+        },
+        "github_com_Tencent_WeKnora_internal_models_api.Tool": {
+            "type": "object",
+            "properties": {
+                "function": {
+                    "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_models_api.FunctionDef"
+                },
+                "type": {
+                    "description": "\"function\"",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_Tencent_WeKnora_internal_models_api.ToolCall": {
+            "type": "object",
+            "properties": {
+                "function": {
+                    "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_models_api.FunctionCall"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "provider_metadata": {
+                    "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_types.ToolCallMetadata"
+                },
+                "type": {
+                    "description": "\"function\"",
+                    "type": "string"
+                }
             }
         },
         "github_com_Tencent_WeKnora_internal_models_limiter.RuntimeStat": {
@@ -31000,7 +31284,7 @@
             "type": "object",
             "properties": {
                 "attrs": {
-                    "description": "Attrs is the observed attribute map (e.g. contain.text, contain.data_visual)\nproduced by the attribute pipeline. Absent keys mean \"not observed\".",
+                    "description": "Attrs 包含模型观察属性和解析器的 source.* 来源位置；缺少来源键表示未知。",
                     "type": "object",
                     "additionalProperties": {}
                 },
@@ -34378,6 +34662,9 @@
                     "type": "string"
                 },
                 "owner_id": {
+                    "type": "string"
+                },
+                "owner_name": {
                     "type": "string"
                 },
                 "owner_tenant_id": {
@@ -40191,6 +40478,28 @@
                 }
             }
         },
+        "internal_handler.HarnessModelRequest": {
+            "type": "object",
+            "required": [
+                "messages",
+                "model_revision"
+            ],
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_models_api.Message"
+                    }
+                },
+                "model_revision": {
+                    "type": "string"
+                },
+                "options": {
+                    "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_models_api.Options"
+                }
+            }
+        },
         "internal_handler.HybridSearchResponse": {
             "type": "object",
             "properties": {
@@ -40459,7 +40768,18 @@
             ],
             "properties": {
                 "asr_config": {
-                    "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_types.ASRConfig"
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "language": {
+                            "type": "string"
+                        },
+                        "model_id": {
+                            "type": "string"
+                        }
+                    }
                 },
                 "documentSplitting": {
                     "description": "文档分块配置",
@@ -40585,7 +40905,33 @@
                     "type": "string"
                 },
                 "vlm_config": {
-                    "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_types.VLMConfig"
+                    "type": "object",
+                    "properties": {
+                        "api_key": {
+                            "type": "string"
+                        },
+                        "base_url": {
+                            "type": "string"
+                        },
+                        "custom_instructions": {
+                            "type": "string"
+                        },
+                        "description_language": {
+                            "type": "string"
+                        },
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "interface_type": {
+                            "type": "string"
+                        },
+                        "model_id": {
+                            "type": "string"
+                        },
+                        "model_name": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },

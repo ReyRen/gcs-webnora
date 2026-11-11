@@ -88,6 +88,14 @@ curl $BASE/api/v1/models -H "Authorization: Bearer $TOKEN"
 curl $BASE/api/v1/models/m-1 -H "Authorization: Bearer $TOKEN"
 ```
 
+### POST /api/v1/models/:id/harness-chat
+
+用途：Harness 使用当前授权空间的已存对话模型进行流式推理。权限：Viewer+；API key 沿用模型组的 full-access / `manage_models` 规则，平台 key 须提供 `X-Tenant-ID`。请求中的模型地址、凭据不参与解析，只使用路径 ID 对应的已存配置。
+
+请求 JSON：`messages` 为非空的协议中立消息数组（`role`、`content`、`multi_content`、工具调用、推理签名等），`options` 为 `api.Options`，`model_revision` 为 `GET /models/:id` 返回的 `updated_at`。请求体上限 32 MiB。只接受启用的 `KnowledgeQA` 模型；配置版本过期返回 409 `model_configuration_changed`，其他空间的模型返回 404。
+
+响应为 `text/event-stream`，每个 `event: chunk` 的 `data` 是 `types.StreamResponse`；通道结束后发送 `event: end`。客户端必须同时确认有效的 `finish_reason` 和终止事件，不能把网络截断当成成功。中间 `done` 事件可能先于最终用量和完整工具参数，不应提前结束读取。上游错误只返回稳定错误标识，不包含上游 URL、响应体或密钥。当前接口不支持显式停止序列。
+
 ### POST /api/v1/models/:id/copy
 
 用途：复制当前空间中的非内置模型配置。权限：Admin+。

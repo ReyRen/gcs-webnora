@@ -28,7 +28,7 @@
             variant="text"
             size="small"
             class="model-header-action"
-            @click="uiStore.openSettings('model-catalog')"
+            @click="openCatalog"
           >
             <template #icon><t-icon name="control-platform" /></template>
             {{ $t('modelCatalog.title') }}
@@ -346,6 +346,12 @@ import {
 
 const { t, locale } = useI18n()
 const authStore = useAuthStore()
+const props = defineProps<{ embedded?: boolean }>()
+const emit = defineEmits<{ 'models-changed': []; 'open-catalog': [] }>()
+function openCatalog() {
+  if (props.embedded) emit('open-catalog')
+  else uiStore.openSettings('model-catalog')
+}
 const uiStore = useUIStore()
 const chatResources = useChatResourcesStore()
 const providersStore = useModelProvidersStore()
@@ -560,6 +566,7 @@ const loadModels = async () => {
     // 设置页自己 listModels 之后立刻写回空间级缓存。否则对话输入栏 /
     // 智能体编辑器会继续拿 60s TTL 里的旧 context_window，刷新页面才对。
     chatResources.replaceModels(models)
+    emit('models-changed')
   } catch (error: any) {
     console.error('加载模型列表失败:', error)
     MessagePlugin.error(error.message)
