@@ -71,7 +71,9 @@ async function receive(event: MessageEvent) {
     if (stopped) { auth.logout(); return }
     if (!hydrated) throw new Error('无法加载账号和空间信息')
     post('weknora:sso-authenticated', { user_id: result.user.id })
-    await router.replace(auth.hasValidTenant ? '/platform/knowledge-bases' : '/onboarding/workspace')
+    const theme = route.query.theme === 'dark' ? 'dark' : 'light'
+    const destination = route.query.target === 'models' ? `/harness/models?theme=${theme}` : '/platform/knowledge-bases'
+    await router.replace(auth.hasValidTenant ? destination : '/onboarding/workspace')
   } catch (error) {
     auth.logout()
     fail(error instanceof Error ? error.message : '平台身份验证失败')

@@ -30,6 +30,8 @@ func RegisterModelRoutes(
 		models.POST("", g.Admin(), handler.CreateModel)
 		// 获取模型列表 — Viewer+
 		models.GET("", g.Viewer(), handler.ListModels)
+		// Interactive inference uses the same workspace authorization as reads.
+		models.POST("/:id/harness-chat", g.Viewer(), handler.ChatHarnessModel)
 		// 调试已保存模型会发起真实上游调用并产生费用 — Admin+
 		models.POST("/:id/debug", g.Admin(), handler.DebugModel)
 		// 复制模型配置（含已存凭证）— Admin+

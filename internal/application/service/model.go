@@ -701,10 +701,16 @@ func (s *modelService) GetRerankModel(ctx context.Context, modelId string) (rera
 // GetChatModel retrieves and initializes a chat model instance
 // Takes a model ID and returns a Chat interface implementation
 func (s *modelService) GetChatModel(ctx context.Context, modelId string) (chat.Chat, error) {
+	_, instance, err := s.GetChatModelSnapshot(ctx, modelId)
+	return instance, err
+}
+
+// GetChatModelSnapshot binds model metadata and its runtime to one repository read.
+func (s *modelService) GetChatModelSnapshot(ctx context.Context, modelId string) (*types.Model, chat.Chat, error) {
 	// Check if model ID is empty
 	if modelId == "" {
 		logger.Error(ctx, "Model ID is empty")
-		return nil, errors.New("model ID cannot be empty")
+		return nil, nil, errors.New("model ID cannot be empty")
 	}
 
 	tenantID := types.MustTenantIDFromContext(ctx)
@@ -716,12 +722,12 @@ func (s *modelService) GetChatModel(ctx context.Context, modelId string) (chat.C
 			"model_id":  modelId,
 			"tenant_id": tenantID,
 		})
-		return nil, err
+		return nil, nil, err
 	}
 
 	if model == nil {
 		logger.Error(ctx, "Chat model not found")
-		return nil, ErrModelNotFound
+		return nil, nil, ErrModelNotFound
 	}
 
 	logger.Infof(ctx, "Getting chat model: %s, source: %s", model.Name, model.Source)
@@ -734,10 +740,10 @@ func (s *modelService) GetChatModel(ctx context.Context, modelId string) (chat.C
 			"model_id":   model.ID,
 			"model_name": model.Name,
 		})
-		return nil, err
+		return model, nil, err
 	}
 
-	return chatModel, nil
+	return model, chatModel, nil
 }
 
 // GetVLMModel retrieves and initializes a vision language model instance.

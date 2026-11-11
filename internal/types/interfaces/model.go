@@ -44,6 +44,9 @@ type ModelService interface {
 	GetRerankModel(ctx context.Context, modelId string) (rerank.Reranker, error)
 	// GetChatModel gets a chat model
 	GetChatModel(ctx context.Context, modelId string) (chat.Chat, error)
+	// GetChatModelSnapshot returns the exact stored configuration used to build
+	// the chat instance, so callers cannot mix two model configuration revisions.
+	GetChatModelSnapshot(ctx context.Context, modelId string) (*types.Model, chat.Chat, error)
 	// GetVLMModel gets a vision language model
 	GetVLMModel(ctx context.Context, modelId string) (vlm.VLM, error)
 	// GetASRModel gets an automatic speech recognition model

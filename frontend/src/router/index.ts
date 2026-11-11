@@ -60,6 +60,12 @@ const router = createRouter({
       component: () => import('../views/auth/PlatformSso.vue'),
       meta: { requiresAuth: false, requiresInit: false },
     },
+    {
+      path: '/harness/models',
+      name: 'harnessModels',
+      component: () => import('../views/settings/HarnessModels.vue'),
+      meta: { requiresAuth: true, requiresInit: false },
+    },
     appEntryRoute,
     {
       path: "/login",
