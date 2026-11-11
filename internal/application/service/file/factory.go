@@ -44,7 +44,9 @@ func NewFileServiceFromStorageConfig(
 			if sec != nil && sec.Local != nil {
 				prefix = sec.Local.PathPrefix
 			}
-			svc, err := NewUserLocalFileService(localBaseDir, prefix, strings.TrimSpace(os.Getenv("APP_EXTERNAL_URL")), owners[0])
+			svc, err := NewUserLocalFileService(
+				localBaseDir, prefix, strings.TrimSpace(os.Getenv("APP_EXTERNAL_URL")), owners[0],
+			)
 			return svc, p, err
 		}
 		baseDir := localBaseDir

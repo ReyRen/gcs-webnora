@@ -123,7 +123,10 @@ func TestPostgresPlatformSSOUpgradePaths(t *testing.T) {
 			require.Equal(t, 138, version)
 			require.False(t, dirty)
 			var tables int
-			require.NoError(t, db.QueryRow("SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('platform_sso_identities','platform_sso_sessions','credential_vault_items','platform_storage_bindings')").Scan(&tables))
+			require.NoError(t, db.QueryRow(`SELECT count(*) FROM information_schema.tables
+				WHERE table_schema='public' AND table_name IN (
+				'platform_sso_identities','platform_sso_sessions','credential_vault_items','platform_storage_bindings'
+				)`).Scan(&tables))
 			require.Equal(t, 4, tables)
 			if state == "legacy" {
 				requirePlatformSSOSentinel(t, db)

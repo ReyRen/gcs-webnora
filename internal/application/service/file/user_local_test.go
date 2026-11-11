@@ -44,12 +44,14 @@ func TestUserLocalStorageLifecycleAndPlacement(t *testing.T) {
 	path, err := svc.SaveFile(ctx, req.MultipartForm.File["file"][0], 7, "document-a")
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(path, "local://7/document-a/"))
-	physical := filepath.Join(base, "user-369", "gcs-webnora", "spaces", "7", "files", strings.TrimPrefix(path, "local://7/"))
+	workspace := filepath.Join(base, "user-369", "gcs-webnora", "spaces", "7", "files")
+	physical := filepath.Join(workspace, strings.TrimPrefix(path, "local://7/"))
 	require.FileExists(t, physical)
 	require.Equal(t, []byte("original knowledge"), readLocal(t, svc, path))
 	copyPath, err := svc.CopyFile(ctx, path, 8, "copied-document")
 	require.NoError(t, err)
-	require.FileExists(t, filepath.Join(base, "user-568/gcs-webnora/spaces/8/files", strings.TrimPrefix(copyPath, "local://8/")))
+	copyRoot := filepath.Join(base, "user-568/gcs-webnora/spaces/8/files")
+	require.FileExists(t, filepath.Join(copyRoot, strings.TrimPrefix(copyPath, "local://8/")))
 	require.NoError(t, svc.DeleteFile(ctx, path))
 	require.NoFileExists(t, physical)
 	require.Equal(t, []byte("original knowledge"), readLocal(t, svc, copyPath))
@@ -64,11 +66,15 @@ func TestUserLocalStorageRejectsEscapeAndUnknownPlacement(t *testing.T) {
 	ctx := context.Background()
 	base := t.TempDir()
 	require.NoError(t, os.Mkdir(filepath.Join(base, "user-369"), 0o755))
-	svc, err := NewUserLocalFileService(base, "", "", func(context.Context, uint64) (string, error) { return "369", nil })
+	owner := func(context.Context, uint64) (string, error) { return "369", nil }
+	svc, err := NewUserLocalFileService(base, "", "", owner)
 	require.NoError(t, err)
 	path, err := svc.SaveBytes(ctx, []byte("safe"), 7, "safe.txt", false)
 	require.NoError(t, err)
-	for _, bad := range []string{"local://7/../../user-568/dsh-home/config", "local://7/exports/../secret", "local://7//secret", "local://user-568/dsh-home/a", "/etc/passwd", "local://7/exports\\secret", "local://0/exports/a"} {
+	for _, bad := range []string{
+		"local://7/../../user-568/dsh-home/config", "local://7/exports/../secret", "local://7//secret",
+		"local://user-568/dsh-home/a", "/etc/passwd", "local://7/exports\\secret", "local://0/exports/a",
+	} {
 		_, err := svc.GetFile(ctx, bad)
 		require.Error(t, err, bad)
 		require.Error(t, svc.DeleteFile(ctx, bad), bad)
@@ -94,6 +100,7 @@ func TestUserLocalFactoryRequiresAuthoritativePlacement(t *testing.T) {
 	t.Setenv("LOCAL_STORAGE_LAYOUT", "platform-user")
 	_, _, err := NewFileServiceFromStorageConfig("local", nil, t.TempDir())
 	require.Error(t, err)
-	_, err = NewUserLocalFileService(t.TempDir(), "../../dsh-home", "", func(context.Context, uint64) (string, error) { return "369", nil })
+	owner := func(context.Context, uint64) (string, error) { return "369", nil }
+	_, err = NewUserLocalFileService(t.TempDir(), "../../dsh-home", "", owner)
 	require.Error(t, err)
 }

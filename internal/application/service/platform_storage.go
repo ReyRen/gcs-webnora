@@ -33,7 +33,10 @@ func NewPlatformStorageUserResolver(db *gorm.DB, provider string) filesvc.Storag
 			err = db.WithContext(ctx).Table("tenant_members AS m").
 				Joins("JOIN platform_sso_identities AS i ON i.user_id = m.user_id").
 				Joins("JOIN tenants AS t ON t.id = m.tenant_id AND t.deleted_at IS NULL").
-				Where("m.tenant_id = ? AND m.role = ? AND m.status = ? AND m.deleted_at IS NULL AND i.provider = ?", tenantID, types.TenantRoleOwner, types.TenantMemberStatusActive, provider).
+				Where(
+					"m.tenant_id = ? AND m.role = ? AND m.status = ? AND m.deleted_at IS NULL AND i.provider = ?",
+					tenantID, types.TenantRoleOwner, types.TenantMemberStatusActive, provider,
+				).
 				Distinct().Pluck("i.subject", &subjects).Error
 			if err != nil {
 				return "", err
@@ -45,8 +48,11 @@ func NewPlatformStorageUserResolver(db *gorm.DB, provider string) filesvc.Storag
 			if parseErr != nil || n == 0 || strconv.FormatUint(n, 10) != subjects[0] {
 				return "", fmt.Errorf("invalid platform storage user ID")
 			}
-			binding = types.PlatformStorageBinding{TenantID: tenantID, Provider: provider, Subject: subjects[0], CreatedAt: time.Now()}
-			if err = db.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(&binding).Error; err != nil {
+			binding = types.PlatformStorageBinding{
+				TenantID: tenantID, Provider: provider, Subject: subjects[0], CreatedAt: time.Now(),
+			}
+			err = db.WithContext(ctx).Clauses(clause.OnConflict{DoNothing: true}).Create(&binding).Error
+			if err != nil {
 				return "", err
 			}
 			// Read back the winning placement if two first writes raced.

@@ -20,6 +20,7 @@ import (
 // current user. Sharing changes authorization, not the physical owner directory.
 type StorageUserResolver func(context.Context, uint64) (string, error)
 
+// PlatformUserStorageEnabled selects the Harness per-user filesystem layout.
 func PlatformUserStorageEnabled() bool {
 	return os.Getenv("LOCAL_STORAGE_LAYOUT") == "platform-user"
 }
@@ -34,7 +35,9 @@ type userLocalFileService struct {
 // NewUserLocalFileService retains local://<tenant>/<object> handles while placing
 // bytes under user-<platform UID>/gcs-webnora/spaces/<tenant>/files. Every actual
 // filesystem operation is rooted in that workspace, including symlink resolution.
-func NewUserLocalFileService(base, prefix, externalURL string, owner StorageUserResolver) (interfaces.FileService, error) {
+func NewUserLocalFileService(
+	base, prefix, externalURL string, owner StorageUserResolver,
+) (interfaces.FileService, error) {
 	if owner == nil || !filepath.IsAbs(base) {
 		return nil, fmt.Errorf("platform-user storage requires an absolute root and a storage owner resolver")
 	}
@@ -42,8 +45,10 @@ func NewUserLocalFileService(base, prefix, externalURL string, owner StorageUser
 		return nil, fmt.Errorf("invalid local storage instance prefix")
 	}
 	return &userLocalFileService{
-		localFileService: &localFileService{baseDir: filepath.Clean(base), externalURL: strings.TrimRight(externalURL, "/")},
-		owner:            owner, prefix: prefix, legacyBase: os.Getenv("LOCAL_STORAGE_LEGACY_BASE_DIR"),
+		localFileService: &localFileService{
+			baseDir: filepath.Clean(base), externalURL: strings.TrimRight(externalURL, "/"),
+		},
+		owner: owner, prefix: prefix, legacyBase: os.Getenv("LOCAL_STORAGE_LEGACY_BASE_DIR"),
 	}, nil
 }
 
@@ -140,7 +145,9 @@ func (s *userLocalFileService) logical(filePath string) (uint64, string, error) 
 	return tenant, strings.Join(parts[1:], "/"), nil
 }
 
-func (s *userLocalFileService) save(ctx context.Context, src io.Reader, tenant uint64, dir, name string) (string, error) {
+func (s *userLocalFileService) save(
+	ctx context.Context, src io.Reader, tenant uint64, dir, name string,
+) (string, error) {
 	if _, err := secutils.SafeFileName(dir); err != nil || dir == "." || dir == ".." {
 		return "", fmt.Errorf("invalid knowledge directory")
 	}
@@ -173,7 +180,9 @@ func (s *userLocalFileService) save(ctx context.Context, src io.Reader, tenant u
 	return fmt.Sprintf("local://%d/%s/%s", tenant, dir, name), nil
 }
 
-func (s *userLocalFileService) SaveFile(ctx context.Context, header *multipart.FileHeader, tenant uint64, knowledge string) (string, error) {
+func (s *userLocalFileService) SaveFile(
+	ctx context.Context, header *multipart.FileHeader, tenant uint64, knowledge string,
+) (string, error) {
 	name, err := secutils.SafeFileName(header.Filename)
 	if err != nil {
 		return "", err
@@ -186,13 +195,16 @@ func (s *userLocalFileService) SaveFile(ctx context.Context, header *multipart.F
 	return s.save(ctx, f, tenant, knowledge, fmt.Sprintf("%d%s", time.Now().UnixNano(), filepath.Ext(name)))
 }
 
-func (s *userLocalFileService) SaveBytes(ctx context.Context, data []byte, tenant uint64, name string, temp bool) (string, error) {
+func (s *userLocalFileService) SaveBytes(
+	ctx context.Context, data []byte, tenant uint64, name string, temp bool,
+) (string, error) {
 	name, err := secutils.SafeFileName(name)
 	if err != nil {
 		return "", err
 	}
 	ext := filepath.Ext(name)
-	return s.save(ctx, bytes.NewReader(data), tenant, "exports", fmt.Sprintf("%s_%d%s", strings.TrimSuffix(name, ext), time.Now().UnixNano(), ext))
+	filename := fmt.Sprintf("%s_%d%s", strings.TrimSuffix(name, ext), time.Now().UnixNano(), ext)
+	return s.save(ctx, bytes.NewReader(data), tenant, "exports", filename)
 }
 
 func (s *userLocalFileService) GetFile(ctx context.Context, path string) (io.ReadCloser, error) {
@@ -221,7 +233,9 @@ func (s *userLocalFileService) DeleteFile(ctx context.Context, path string) erro
 	return r.Remove(name)
 }
 
-func (s *userLocalFileService) CopyFile(ctx context.Context, path string, tenant uint64, knowledge string) (string, error) {
+func (s *userLocalFileService) CopyFile(
+	ctx context.Context, path string, tenant uint64, knowledge string,
+) (string, error) {
 	f, err := s.GetFile(ctx, path)
 	if err != nil {
 		return "", err

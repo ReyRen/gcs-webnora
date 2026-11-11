@@ -1372,7 +1372,9 @@ func syncSequences(db *gorm.DB) {
 // Returns:
 //   - Configured file service implementation
 //   - Error if initialization fails
-func initFileService(cfg *config.Config, catalog interfaces.ResourceCatalog, db *gorm.DB) (interfaces.FileService, error) {
+func initFileService(
+	cfg *config.Config, catalog interfaces.ResourceCatalog, db *gorm.DB,
+) (interfaces.FileService, error) {
 	inner, err := initRawFileService(cfg, db)
 	if err != nil {
 		return nil, err
@@ -1512,7 +1514,10 @@ func initRawFileService(_ *config.Config, databases ...*gorm.DB) (interfaces.Fil
 			if len(databases) == 0 {
 				return nil, fmt.Errorf("platform-user storage requires the database")
 			}
-			return file.NewUserLocalFileService(baseDir, "", externalURL, service.NewPlatformStorageUserResolver(databases[0], os.Getenv("PLATFORM_SSO_BASE_URL")))
+			return file.NewUserLocalFileService(
+				baseDir, "", externalURL,
+				service.NewPlatformStorageUserResolver(databases[0], os.Getenv("PLATFORM_SSO_BASE_URL")),
+			)
 		}
 		return file.NewLocalFileService(baseDir, externalURL), nil
 	case "dummy":
