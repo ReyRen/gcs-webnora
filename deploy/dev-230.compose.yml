@@ -113,6 +113,11 @@ services:
       GOTMPDIR: /runtime/tmp
       GOMAXPROCS: "8"
       GOFLAGS: -p=8
+      # The source bind is read-only and owned by the deployment account.
+      # Trust this exact path for Go VCS stamping without trusting other repos.
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: safe.directory
+      GIT_CONFIG_VALUE_0: /workspace
       HOME: /runtime/home
       LOCAL_STORAGE_LAYOUT: platform-user
       LOCAL_STORAGE_BASE_DIR: /storage-root-jfs
