@@ -22,6 +22,20 @@
 
 Harness 请求经过本服务的已授权流式推理接口，再由本服务访问模型提供方。模型密钥保留在数据库及服务端运行时，不返回用户浏览器或 Harness 容器。用户容器停止后，知识库解析和索引仍能使用原模型配置；离线部署需要现场网络中可访问本服务和对应模型端点。
 
+### 导入旧 Harness 配置
+
+运维工具 `cmd/migrate-harness-models` 只供升级迁移，不是对外接口。输入是权限 `0600` 的 JSON 数组，每项显式指定 `userID`、SSO 身份提供方 `provider`、旧提供方路由 `route`、模型 ID `model`、显示名称 `name` 和 `parameters`。旧 Harness 的显式模型列表按原来的对话模型用途导入，不按名称猜测 Embedding 或重排类型。密钥从旧用户凭据存储读取，只放入受保护的临时输入，不能写入 Git、终端输出或报告。
+
+运行环境通过 `HARNESS_MIGRATION_DSN` 提供数据库连接，通过现有 `SYSTEM_AES_KEY` 加密凭据。先备份数据库与旧文件，生成计划并审核：
+
+```bash
+go run ./cmd/migrate-harness-models -input /protected/models.json -output /protected/plan.json
+# 核对计划后执行；不向命令行传数据库口令或模型密钥。
+go run ./cmd/migrate-harness-models -input /protected/models.json -output /protected/result.json -apply
+```
+
+工具通过已存 SSO 身份、用户个人空间、不可变 JFS 归属和活跃 Owner 成员记录共同确定目标，不接受输入提供目标空间 ID。任一归属不明确就整体停止。导入使用一个事务，不覆盖已有模型；只有连接参数、凭据和能力完全相同才复用，同名不等于同一模型。报告只含旧引用、目标 ID 与创建/复用结果。根据报告为各用户安装不含凭据的 `DSH_HOME/storages/zhishu-models/legacy-model-map.json`（`version: 1`、`platformUserID`、`models` 数组，条目为 `provider`、`model`、`tenantID`、`id`），供 Harness 通过原生会话事件迁移旧选择。完成核对后删除临时明文输入，保留旧文件及备份。
+
 ## 选择模型类型
 
 | 类型 | 用途 |
