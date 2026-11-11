@@ -40,7 +40,7 @@ func TestUserLocalStorageLifecycleAndPlacement(t *testing.T) {
 	req := httptest.NewRequest("POST", "/", &body)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	require.NoError(t, req.ParseMultipartForm(1<<20))
-	defer req.MultipartForm.RemoveAll()
+	t.Cleanup(func() { require.NoError(t, req.MultipartForm.RemoveAll()) })
 	path, err := svc.SaveFile(ctx, req.MultipartForm.File["file"][0], 7, "document-a")
 	require.NoError(t, err)
 	require.True(t, strings.HasPrefix(path, "local://7/document-a/"))

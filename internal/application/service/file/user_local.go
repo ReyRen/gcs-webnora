@@ -52,7 +52,7 @@ func NewUserLocalFileService(
 	}, nil
 }
 
-func (s *userLocalFileService) CheckConnectivity(ctx context.Context) error {
+func (s *userLocalFileService) CheckConnectivity(_ context.Context) error {
 	r, err := os.OpenRoot(s.baseDir)
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func (s *userLocalFileService) workspace(ctx context.Context, tenant uint64, cre
 		// A restricted knowledge service must never create it under its own UID,
 		// which would prevent Harness from creating new top-level workspaces.
 		next, openErr := directory(r, part, create && i > 0, mode)
-		r.Close()
+		_ = r.Close()
 		if openErr != nil {
 			return nil, openErr
 		}
@@ -155,12 +155,12 @@ func (s *userLocalFileService) save(
 	if err != nil {
 		return "", err
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 	d, err := directory(r, dir, true, 0o700)
 	if err != nil {
 		return "", err
 	}
-	defer d.Close()
+	defer func() { _ = d.Close() }()
 	f, err := d.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
 		return "", err
@@ -191,12 +191,12 @@ func (s *userLocalFileService) SaveFile(
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	return s.save(ctx, f, tenant, knowledge, fmt.Sprintf("%d%s", time.Now().UnixNano(), filepath.Ext(name)))
 }
 
 func (s *userLocalFileService) SaveBytes(
-	ctx context.Context, data []byte, tenant uint64, name string, temp bool,
+	ctx context.Context, data []byte, tenant uint64, name string, _ bool,
 ) (string, error) {
 	name, err := secutils.SafeFileName(name)
 	if err != nil {
@@ -216,7 +216,7 @@ func (s *userLocalFileService) GetFile(ctx context.Context, path string) (io.Rea
 	if err != nil {
 		return nil, err
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 	return r.Open(name)
 }
 
@@ -229,7 +229,7 @@ func (s *userLocalFileService) DeleteFile(ctx context.Context, path string) erro
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 	return r.Remove(name)
 }
 
@@ -240,7 +240,7 @@ func (s *userLocalFileService) CopyFile(
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	return s.save(ctx, f, tenant, knowledge, fmt.Sprintf("%d%s", time.Now().UnixNano(), filepath.Ext(path)))
 }
 

@@ -139,8 +139,14 @@ def main():
         user = root / ("user-" + uid)
         if not user.exists():
             user.mkdir(mode=0o755)
+            # The utility deliberately uses umask 077 for backups; the user
+            # root must still be traversable by the restricted service UID.
+            os.chmod(str(user), 0o755)
         if user.is_symlink():
             raise RuntimeError("user root is a symlink")
+        st = user.stat()
+        if st.st_uid != args.uid and not (st.st_gid == args.gid and st.st_mode & 0o010) and not st.st_mode & 0o001:
+            raise RuntimeError("service account cannot traverse the existing user root: " + str(user))
         for path in (user / "gcs-webnora", user / "gcs-webnora/spaces", user / "gcs-webnora/spaces" / tenant, user / "gcs-webnora/spaces" / tenant / "files"):
             safe_directory(path, args.uid, args.gid)
         sql("INSERT INTO platform_storage_bindings(tenant_id,provider,subject) VALUES (" + tenant + ",'" + provider + "','" + uid + "') ON CONFLICT(tenant_id) DO NOTHING")
