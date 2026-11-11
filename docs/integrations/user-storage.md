@@ -50,10 +50,12 @@ WEBNORA_APP_GID=21090
 3. 暂停自动重载/同步，停止 app 等写入者，等待后台任务停止，再停止 Redis。保留旧启动配置和可执行文件，按迁移机制应用 PostgreSQL 138（SQLite 54）建表。
 4. 执行 `python3 scripts/migrate-user-storage.py --apply`。脚本先备份 PostgreSQL 和 Redis，复制文件并逐个检查 SHA256；既有不同内容的目标拒绝覆盖。源目录保留，不改数据库里的资源引用。
 5. 只为服务账号准备 `/runtime/bin`、`tmp`、`logs`、`home`、Go 缓存等必需写目录。不要把整个 JFS 或数据库目录改属主，不放宽用户私有目录权限。
-6. 用 Compose 启动 Redis 和 app，检查其实际挂载、账号、健康状态及迁移版本。没有挂载的目录必须报错，禁止自动创建本地同名根作兜底。
+6. 用 Compose 启动 Redis 和 app，检查其实际挂载、账号、健康状态及迁移版本。除 `/health` 外，还须核对 `/api/v1/system/info` 的 `commit_id` 与目标提交一致，且 `db_migration_failed=false`；不能把仍在运行的旧二进制当作更新完成。没有挂载的目录必须报错，禁止自动创建本地同名根作兜底。
 7. 核对全部既有文件校验，验证原文下载、上传解析、图片、复制、导出、删除、检索、共享与撤权，并重启检查 Redis 持久化。验证前不清理旧源数据。
 
 启动示例：
+
+源码检出应使用正常的 `umask 022`，确保受限服务账号能读取代码和迁移文件。备份的 `umask 077` 不能沿用到 Git 快进操作，也不能把 `.env`、用户数据和数据库目录一起放宽权限。启动器构建失败会停止服务，不回退运行旧二进制。
 
 ```bash
 docker compose --env-file .env -p gcs-webnora-dev \
