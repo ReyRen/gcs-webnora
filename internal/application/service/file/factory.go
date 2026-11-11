@@ -17,6 +17,7 @@ func NewFileServiceFromStorageConfig(
 	provider string,
 	sec *types.StorageEngineConfig,
 	localBaseDir string,
+	owners ...StorageUserResolver,
 ) (interfaces.FileService, string, error) {
 	p := strings.ToLower(strings.TrimSpace(provider))
 	if p == "" && sec != nil {
@@ -35,6 +36,19 @@ func NewFileServiceFromStorageConfig(
 
 	switch p {
 	case "local":
+		if PlatformUserStorageEnabled() {
+			if len(owners) == 0 {
+				return nil, p, fmt.Errorf("platform-user local storage requires an owner resolver")
+			}
+			prefix := ""
+			if sec != nil && sec.Local != nil {
+				prefix = sec.Local.PathPrefix
+			}
+			svc, err := NewUserLocalFileService(
+				localBaseDir, prefix, strings.TrimSpace(os.Getenv("APP_EXTERNAL_URL")), owners[0],
+			)
+			return svc, p, err
+		}
 		baseDir := localBaseDir
 		if sec != nil && sec.Local != nil {
 			if safeBaseDir, err := secutils.SafeJoinUnderBase(baseDir, sec.Local.PathPrefix); err == nil {

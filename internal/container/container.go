@@ -1372,8 +1372,10 @@ func syncSequences(db *gorm.DB) {
 // Returns:
 //   - Configured file service implementation
 //   - Error if initialization fails
-func initFileService(cfg *config.Config, catalog interfaces.ResourceCatalog) (interfaces.FileService, error) {
-	inner, err := initRawFileService(cfg)
+func initFileService(
+	cfg *config.Config, catalog interfaces.ResourceCatalog, db *gorm.DB,
+) (interfaces.FileService, error) {
+	inner, err := initRawFileService(cfg, db)
 	if err != nil {
 		return nil, err
 	}
@@ -1383,7 +1385,10 @@ func initFileService(cfg *config.Config, catalog interfaces.ResourceCatalog) (in
 	return file.NewGlobalResourceCatalogFileService(inner, catalog), nil
 }
 
-func initRawFileService(_ *config.Config) (interfaces.FileService, error) {
+func initRawFileService(_ *config.Config, databases ...*gorm.DB) (interfaces.FileService, error) {
+	if layout := os.Getenv("LOCAL_STORAGE_LAYOUT"); layout != "" && layout != "flat" && layout != "platform-user" {
+		return nil, fmt.Errorf("unsupported local storage layout %q", layout)
+	}
 	storageType := strings.TrimSpace(os.Getenv("STORAGE_TYPE"))
 	if storageType == "" {
 		storageType = "local"
@@ -1505,6 +1510,15 @@ func initRawFileService(_ *config.Config) (interfaces.FileService, error) {
 			baseDir = "/data/files"
 		}
 		externalURL := strings.TrimSpace(os.Getenv("APP_EXTERNAL_URL"))
+		if file.PlatformUserStorageEnabled() {
+			if len(databases) == 0 {
+				return nil, fmt.Errorf("platform-user storage requires the database")
+			}
+			return file.NewUserLocalFileService(
+				baseDir, "", externalURL,
+				service.NewPlatformStorageUserResolver(databases[0], os.Getenv("PLATFORM_SSO_BASE_URL")),
+			)
+		}
 		return file.NewLocalFileService(baseDir, externalURL), nil
 	case "dummy":
 		return file.NewDummyFileService(), nil

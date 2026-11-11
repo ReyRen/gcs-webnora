@@ -200,7 +200,7 @@ func (s *StorageBackendService) Test(ctx context.Context, backend *types.Storage
 	if err := validateStorageBackendEndpoint(backend); err != nil {
 		return err
 	}
-	if backend.Provider == "local" {
+	if backend.Provider == "local" && !filesvc.PlatformUserStorageEnabled() {
 		baseDir := strings.TrimSpace(os.Getenv("LOCAL_STORAGE_BASE_DIR"))
 		if baseDir == "" {
 			baseDir = "/data/files"
@@ -216,7 +216,10 @@ func (s *StorageBackendService) Test(ctx context.Context, backend *types.Storage
 	c := backend.Config
 	switch backend.Provider {
 	case "local":
-		fileService, _, err := filesvc.NewFileServiceFromStorageConfig("local", backend.ToStorageEngineConfig(), "")
+		fileService, _, err := filesvc.NewFileServiceFromStorageConfig(
+			"local", backend.ToStorageEngineConfig(), "",
+			NewPlatformStorageUserResolver(s.db, os.Getenv("PLATFORM_SSO_BASE_URL")),
+		)
 		if err != nil {
 			return err
 		}
@@ -332,7 +335,10 @@ func (s *StorageBackendService) ResolveFileService(ctx context.Context, tenant *
 		return nil, "", err
 	}
 	if backend != nil {
-		inner, provider, err := filesvc.NewFileServiceFromStorageConfig(backend.Provider, backend.ToStorageEngineConfig(), localBaseDir)
+		inner, provider, err := filesvc.NewFileServiceFromStorageConfig(
+			backend.Provider, backend.ToStorageEngineConfig(), localBaseDir,
+			NewPlatformStorageUserResolver(s.db, os.Getenv("PLATFORM_SSO_BASE_URL")),
+		)
 		if err != nil {
 			return nil, provider, err
 		}
@@ -352,6 +358,7 @@ func (s *StorageBackendService) ResolveFileService(ctx context.Context, tenant *
 		provider,
 		sec,
 		localBaseDir,
+		NewPlatformStorageUserResolver(s.db, os.Getenv("PLATFORM_SSO_BASE_URL")),
 	)
 	if err != nil {
 		return nil, resolvedProvider, err
