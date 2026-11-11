@@ -252,10 +252,6 @@
             <!-- WeCom credentials -->
             <template v-if="formData.platform === 'wecom'">
               <div class="platform-link-hint">
-                <a href="https://work.weixin.qq.com/" target="_blank" rel="noopener noreferrer" class="doc-link">
-                  {{ $t('agentEditor.im.wecomConsole') }}
-                  <t-icon name="link" class="link-icon" />
-                </a>
                 <span class="hint-text">{{ $t('agentEditor.im.consoleTip') }}</span>
               </div>
               <template v-if="formData.mode === 'websocket'">
@@ -306,10 +302,6 @@
             <!-- Feishu / Lark credentials — same fields, different open platform -->
             <template v-if="formData.platform === 'feishu' || formData.platform === 'lark'">
               <div class="platform-link-hint">
-                <a :href="openPlatformConsole.url" target="_blank" rel="noopener noreferrer" class="doc-link">
-                  {{ $t(openPlatformConsole.labelKey) }}
-                  <t-icon name="link" class="link-icon" />
-                </a>
                 <span class="hint-text">{{ $t('agentEditor.im.consoleTip') }}</span>
               </div>
               <div class="form-item">
@@ -340,10 +332,6 @@
             <!-- Slack credentials -->
             <template v-if="formData.platform === 'slack'">
               <div class="platform-link-hint">
-                <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer" class="doc-link">
-                  {{ $t('agentEditor.im.slackConsole') }}
-                  <t-icon name="link" class="link-icon" />
-                </a>
                 <span class="hint-text">{{ $t('agentEditor.im.consoleTip') }}</span>
               </div>
               <template v-if="formData.mode === 'websocket'">
@@ -371,10 +359,6 @@
             <!-- Telegram credentials -->
             <template v-if="formData.platform === 'telegram'">
               <div class="platform-link-hint">
-                <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" class="doc-link">
-                  {{ $t('agentEditor.im.telegramConsole') }}
-                  <t-icon name="link" class="link-icon" />
-                </a>
                 <span class="hint-text">{{ $t('agentEditor.im.consoleTip') }}</span>
               </div>
               <div class="form-item">
@@ -393,10 +377,6 @@
             <!-- DingTalk credentials -->
             <template v-if="formData.platform === 'dingtalk'">
               <div class="platform-link-hint">
-                <a href="https://open.dingtalk.com/" target="_blank" rel="noopener noreferrer" class="doc-link">
-                  {{ $t('agentEditor.im.dingtalkConsole') }}
-                  <t-icon name="link" class="link-icon" />
-                </a>
                 <span class="hint-text">{{ $t('agentEditor.im.consoleTip') }}</span>
               </div>
               <div class="form-item">
@@ -419,10 +399,6 @@
             <!-- QQBot credentials -->
             <template v-if="formData.platform === 'qqbot'">
               <div class="platform-link-hint">
-                <a href="https://q.qq.com/" target="_blank" rel="noopener noreferrer" class="doc-link">
-                  {{ $t('agentEditor.im.qqbotConsole') }}
-                  <t-icon name="link" class="link-icon" />
-                </a>
                 <span class="hint-text">{{ $t('agentEditor.im.consoleTip') }}</span>
               </div>
               <div class="form-item">
@@ -448,11 +424,6 @@
             <!-- Mattermost credentials -->
             <template v-if="formData.platform === 'mattermost'">
               <div class="platform-link-hint">
-                <a href="https://developers.mattermost.com/integrate/webhooks/outgoing/" target="_blank"
-                  rel="noopener noreferrer" class="doc-link">
-                  {{ $t('agentEditor.im.mattermostConsole') }}
-                  <t-icon name="link" class="link-icon" />
-                </a>
                 <span class="hint-text">{{ $t('agentEditor.im.consoleTip') }}</span>
               </div>
               <div class="form-item">
@@ -494,10 +465,6 @@
                   placeholder="https://www.yunzhijia.com/gateway/robot/webhook/send?yzjtype=0&yzjtoken=..." />
                 <p class="form-desc">
                   {{ $t('agentEditor.im.yunzhijiaSendMsgUrlHint') }}
-                  <a href="https://www.yunzhijia.com/opendocs/docs.html#/guide/im/robot" target="_blank"
-                    rel="noopener noreferrer" class="doc-link">
-                    {{ $t('agentEditor.im.yunzhijiaRobotDoc') }}
-                  </a>
                 </p>
               </div>
               <div class="form-item">
@@ -512,10 +479,6 @@
                   :placeholder="$t('agentEditor.im.yunzhijiaAppIdPlaceholder')" />
                 <p class="form-desc">
                   {{ $t('agentEditor.im.yunzhijiaAppCredentialHint') }}
-                  <a href="https://www.yunzhijia.com/developers/" target="_blank" rel="noopener noreferrer"
-                    class="doc-link">
-                    {{ $t('agentEditor.im.yunzhijiaImageDoc') }}
-                  </a>
                 </p>
               </div>
               <div class="form-item">

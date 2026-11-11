@@ -25,16 +25,6 @@
       >
         {{ t('common.retry') }}
       </t-button>
-      <t-button
-        v-if="graphAvailability === 'disabled' && !embedded"
-        size="small"
-        theme="primary"
-        variant="outline"
-        @click="handleOpenGraphGuide"
-      >
-        <template #icon><t-icon name="help-circle" /></template>
-        {{ t('graphSettings.howToEnable') }}
-      </t-button>
     </div>
 
     <div v-if="isGraphDatabaseEnabled" class="settings-group">
@@ -336,7 +326,6 @@ import { useI18n } from 'vue-i18n'
 import { extractTextRelations, fabriText, fabriTag, type Node, type Relation } from '@/api/initialization'
 import { useEditorResourcesStore } from '@/stores/editorResources'
 import { useAuthStore } from '@/stores/auth'
-import { docsUrl } from '@/utils/docsUrl'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -602,14 +591,6 @@ const loadSystemInfo = async (force = false) => {
     graphAvailability.value = 'error'
     console.error('Failed to load system info:', error)
   }
-}
-
-const graphGuideUrl =
-  import.meta.env.VITE_KG_GUIDE_URL || docsUrl('knowledgeGraph')
-
-// Open guide documentation to show how to enable graph database
-const handleOpenGraphGuide = () => {
-  window.open(graphGuideUrl, '_blank', 'noopener')
 }
 
 // 初始化

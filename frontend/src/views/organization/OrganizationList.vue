@@ -161,7 +161,7 @@
                     $t('organization.settings.pendingReview') }}</span>
                 </t-tooltip>
               </div>
-
+              <CreatorAccount class="card-creator" :creator-id="org.owner_id" :account="org.owner_name" />
             </div>
           </div>
           </template>
@@ -444,6 +444,7 @@ import { copyWithToast } from '@/utils/clipboard'
 import OrganizationSettingsModal from './OrganizationSettingsModal.vue'
 import SpaceAvatar from '@/components/SpaceAvatar.vue'
 import ResourceCardAvatar from '@/components/ResourceCardAvatar.vue'
+import CreatorAccount from '@/components/KnowledgeBaseOwner.vue'
 import ResourceListToolbar from '@/components/ResourceListToolbar.vue'
 import { matchesResourceQuery } from '@/utils/resourceListSearch'
 import ResourceSortControl from '@/components/ResourceSortControl.vue'
@@ -1239,8 +1240,16 @@ watch(keyword, () => { collapsedOrgSections.value = new Set() })
   display: flex;
   align-items: center;
   gap: 6px;
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
+}
+
+.card-creator {
+  flex: 1 1 0;
+  justify-content: flex-end;
+  min-width: 0;
+  max-width: 55%;
+  margin-left: auto;
 }
 
 // 与知识库卡片统一的底部标签：小尺寸、统一圆角

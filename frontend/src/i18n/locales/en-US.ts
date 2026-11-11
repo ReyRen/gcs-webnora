@@ -3495,6 +3495,8 @@ export default {
     }
   },
   knowledgeList: {
+    ownerAccount: 'Owner',
+    ownerUnknown: 'Unknown account',
     create: 'Create Knowledge Base',
     subtitle: 'Manage and organize your knowledge bases, supporting document-based and FAQ-based knowledge bases',
     sharedToOrgs: 'Shared to {count} space(s)',
@@ -6145,7 +6147,7 @@ export default {
       },
       download: {
         title: 'Download Models',
-        descPrefix: 'Enter a model name to download,',
+        descPrefix: 'Enter a model name to download.',
         browse: 'Browse Ollama model library',
         placeholder: 'e.g. qwen2.5:0.5b',
         download: 'Download',
@@ -6375,7 +6377,7 @@ export default {
       invite: {
         loading: 'Loading...',
         previewTitle: 'Join Shared Space',
-        inputDesc: 'Enter the invite code (or paste from an invite link) to view the shared space and join',
+        inputDesc: 'Enter an invite code to preview the shared space and join',
         previewAction: 'View',
         primaryJoin: 'Join',
         invalidCode: 'Invite code is invalid or expired',
@@ -6494,10 +6496,10 @@ export default {
         permissionCalcFormula: 'Shared space permission is set when sharing; effective permission is the lower of that and your shared space role',
         permissionCalcTip: 'Effective permission is the lower of shared space permission and your role here; viewers get at most read-only on this KB.',
         inviteMembers: 'Invite Members',
-        inviteMembersDesc: 'Invite others to join the shared space via code or link',
+        inviteMembersDesc: 'Invite others to join the shared space using an invite code',
         inviteLink: 'Invite Link',
-        inviteLinkValidity: 'Invite link validity',
-        inviteLinkValidityDesc: 'Validity period for newly generated invite links',
+        inviteLinkValidity: 'Invite code validity',
+        inviteLinkValidityDesc: 'Validity period for invite codes generated after the next refresh',
         validity1Day: '1 day',
         validity7Days: '7 days',
         validity30Days: '30 days',

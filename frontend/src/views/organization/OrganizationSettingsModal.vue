@@ -107,7 +107,7 @@
 
                 <div class="invite-divider"></div>
 
-                <!-- 邀请链接有效期 -->
+                <!-- 邀请码有效期 -->
                 <div class="invite-method">
                   <div class="invite-method-header">
                     <t-icon name="time" class="invite-icon" />
@@ -118,24 +118,6 @@
                   <t-select v-model="formData.invite_code_validity_days" :options="inviteValidityOptions"
                     size="small" class="invite-validity-select" :disabled="!isAdmin"
                     @change="handleValidityChange" />
-                </div>
-
-                <div class="invite-divider"></div>
-
-                <!-- 邀请链接 -->
-                <div class="invite-method">
-                  <div class="invite-method-header">
-                    <t-icon name="link" class="invite-icon" />
-                    <span class="invite-method-title">{{ $t('organization.settings.inviteLink') }}</span>
-                  </div>
-                  <div class="invite-link-box">
-                    <span class="invite-link-value">{{ inviteLink }}</span>
-                    <t-tooltip :content="$t('common.copy')">
-                      <t-button variant="text" size="small" @click="copyInviteLink">
-                        <t-icon name="file-copy" />
-                      </t-button>
-                    </t-tooltip>
-                  </div>
                 </div>
 
                 <div class="invite-divider"></div>
@@ -1209,11 +1191,6 @@ const isOwnerMember = (member: OrganizationMember): boolean => {
   return member.user_id === orgInfo.value?.owner_id
 }
 
-const inviteLink = computed(() => {
-  if (!inviteCode.value) return ''
-  return `${window.location.origin}/join?code=${inviteCode.value}`
-})
-
 const inviteValidityOptions = computed(() => [
   { label: t('organization.settings.validity1Day'), value: 1 },
   { label: t('organization.settings.validity7Days'), value: 7 },
@@ -1661,10 +1638,6 @@ const resetAddMemberDialog = () => {
 
 const copyInviteCode = async () => {
   await copyWithToast(inviteCode.value, 'common.copied')
-}
-
-const copyInviteLink = async () => {
-  await copyWithToast(inviteLink.value, 'common.copied')
 }
 
 const refreshInviteCode = async () => {
@@ -2310,25 +2283,6 @@ watch(addMemberPopupVisible, (visible) => {
     height: 1px;
     background: var(--td-bg-color-secondarycontainer);
     margin: 12px 0;
-  }
-
-  .invite-link-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--td-bg-color-container);
-    border: 1px solid var(--td-component-stroke);
-    border-radius: var(--app-radius-md);
-    padding: 10px 14px;
-    gap: 12px;
-
-    .invite-link-value {
-      flex: 1;
-      font-size: var(--app-text-sm);
-      color: var(--td-text-color-secondary);
-      word-break: break-all;
-      line-height: 1.4;
-    }
   }
 
   .approval-toggle {

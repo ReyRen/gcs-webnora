@@ -121,7 +121,7 @@ function fixture(t: TestContext, embedded: boolean) {
     assert.equal(classes('graph-disabled--loading').length, state === 'loading' ? 1 : 0)
     assert.equal(classes('settings-group').length, state === 'enabled' ? 1 : 0)
     assert.equal(classes('section-header').length, embedded ? 0 : 1)
-    assert.equal(elements('t-button').filter(el => textOf(el).trim() === 'graphSettings.howToEnable').length, state === 'disabled' && !embedded ? 1 : 0)
+    assert.equal(elements('t-button').filter(el => textOf(el).trim() === 'graphSettings.howToEnable').length, 0)
     const messages = {
       loading: 'graphSettings.checkingAvailability',
       disabled: 'graphSettings.disabledWarning',
@@ -171,10 +171,7 @@ for (const embedded of [false, true]) {
     f.requests[0]!.resolve({ graph_database_engine: 'Not Enabled' })
     await flush()
     f.expectState('disabled')
-    if (!embedded) {
-      f.elements('t-button').find(el => textOf(el).trim() === 'graphSettings.howToEnable')!.props.onClick()
-      assert.deepEqual(f.opened, [['https://example.com/knowledge-graph', '_blank', 'noopener']])
-    }
+    assert.deepEqual(f.opened, [])
   })
 
   for (const error of [new Error('HTTP 500'), new Error('HTTP 403'), new Error('Request timed out')]) {

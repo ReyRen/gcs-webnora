@@ -254,9 +254,7 @@
                     </t-tooltip>
                   </div>
                 </div>
-                <div v-if="!authStore.isLiteMode && showKbOriginBadge(kb)" class="bottom-right">
-                  <ResourceOriginBadge :variant="kbOriginVariant(kb)" :creator-name="kb.creator_name" />
-                </div>
+                <KnowledgeBaseOwner class="bottom-right" :creator-id="kb.creator_id" :account="kb.creator_name" />
               </div>
             </div>
 
@@ -327,14 +325,7 @@
                     </t-tooltip>
                   </div>
                 </div>
-                <div class="bottom-right">
-                  <t-tooltip :content="kb.org_name" placement="top">
-                    <div class="org-source">
-                      <t-icon name="usergroup" class="org-source-icon" size="14px" aria-hidden="true" />
-                      <span>{{ kb.org_name }}</span>
-                    </div>
-                  </t-tooltip>
-                </div>
+                <KnowledgeBaseOwner class="bottom-right" :creator-id="kb.creator_id" :account="kb.creator_name" :source-name="kb.org_name" />
               </div>
             </div>
           </template>
@@ -487,9 +478,7 @@
                     </t-tooltip>
                   </div>
                 </div>
-                <div v-if="!authStore.isLiteMode && showKbOriginBadge(kb)" class="bottom-right">
-                  <ResourceOriginBadge :variant="kbOriginVariant(kb)" :creator-name="kb.creator_name" />
-                </div>
+                <KnowledgeBaseOwner class="bottom-right" :creator-id="kb.creator_id" :account="kb.creator_name" />
               </div>
             </div>
           </template>
@@ -589,6 +578,7 @@
                     </div>
                   </div>
                 </div>
+                <KnowledgeBaseOwner class="bottom-right" :creator-id="shared.knowledge_base.creator_id" :account="shared.knowledge_base.creator_name" />
               </div>
             </div>
           </template>
@@ -712,6 +702,7 @@
 
 <script setup lang="ts">
 import { useAssistantDataChange } from '@/utils/assistantDataChange'
+import KnowledgeBaseOwner from '@/components/KnowledgeBaseOwner.vue'
 import { onMounted, onUnmounted, ref, computed, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { MessagePlugin, Icon as TIcon } from 'tdesign-vue-next'
@@ -732,7 +723,6 @@ import KbTypeAvatar from './components/KbTypeAvatar.vue'
 import ResourceListToolbar from '@/components/ResourceListToolbar.vue'
 import { matchesResourceQuery } from '@/utils/resourceListSearch'
 import ResourceOriginBadge from '@/components/ResourceOriginBadge.vue'
-import { shouldShowResourceOriginBadge } from '@/utils/card-list-badge'
 import { permissionCanManageKB } from '@/utils/kbPermission'
 import ContextualGuide from '@/components/ContextualGuide.vue'
 import ResourceSortControl from '@/components/ResourceSortControl.vue'
@@ -805,7 +795,7 @@ interface KB {
   // gating the per-card more-menu (Settings / Delete). Empty for legacy
   // KBs created before PR 5; those fall back to the role gate.
   creator_id?: string;
-  // creator_name 由后端 list 接口回填，仅用于卡片右下角来源徽章的 tooltip。
+  // creator_name 由后端按创建者账号回填，供卡片右下角展示。
   creator_name?: string;
 }
 
@@ -1311,26 +1301,6 @@ function canDuplicateKBCard(kb: any): boolean {
 function isMyKb(kb: { creator_id?: string }): boolean {
   const userId = authStore.user?.id || ''
   return !!(kb.creator_id && userId && kb.creator_id === userId)
-}
-
-// kbOriginVariant 决定卡片右下角徽章的展示形态：
-//   - 我自己创建的：mine（绿色 "我创建"）
-//   - 同空间他人创建的：creator 变体——只显示创建者名字。用户始终在
-//     某个工作空间内浏览（顶部 TenantSelector 已经标了空间身份），右下
-//     角再贴一遍空间名属于重复信息；contributor / admin / owner / viewer
-//     看到的徽章一致。创建者无法解析时，creator 变体自动回退到
-//     resourceOrigin.tenant 文案（"本空间"），不会出现空标签。
-function kbOriginVariant(kb: { creator_id?: string }): 'mine' | 'creator' {
-  return isMyKb(kb) ? 'mine' : 'creator'
-}
-
-function showKbOriginBadge(kb: { creator_id?: string; creator_name?: string }): boolean {
-  return shouldShowResourceOriginBadge({
-    section: kbSectionOf(kb),
-    variant: kbOriginVariant(kb),
-    creatorName: kb.creator_name,
-    showSectionHeaders: true,
-  })
 }
 
 // 通过 ID 处理设置（用于全部 Tab 下的知识库）
@@ -1884,7 +1854,10 @@ watch(keyword, () => { collapsedKbSections.value = new Set() })
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 55%;
+  margin-left: auto;
 
   .card-time {
     font-size: var(--app-text-sm);

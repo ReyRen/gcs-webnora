@@ -3495,6 +3495,8 @@ export default {
     }
   },
   knowledgeList: {
+    ownerAccount: 'Owner',
+    ownerUnknown: '不明なアカウント',
     create: 'ナレッジベースを作成',
     subtitle: 'ナレッジベースを管理・整理します。ドキュメント型とFAQ型のナレッジベースに対応しています',
     sharedToOrgs: '{count}件の共有スペースに共有中',
@@ -6145,7 +6147,7 @@ export default {
       },
       download: {
         title: 'モデルをダウンロード',
-        descPrefix: 'ダウンロードするモデル名を入力するか、',
+        descPrefix: 'ダウンロードするモデル名を入力してください。',
         browse: 'Ollamaモデルライブラリを見る',
         placeholder: '例: qwen2.5:0.5b',
         download: 'ダウンロード',
@@ -6375,7 +6377,7 @@ export default {
       invite: {
         loading: '読み込み中...',
         previewTitle: '共有スペースに参加',
-        inputDesc: '招待コードを入力（または招待リンクから貼り付け）すると、共有スペースを確認して参加できます',
+        inputDesc: '招待コードを入力し、共有スペースの情報を確認して参加します',
         previewAction: '表示',
         primaryJoin: '参加',
         invalidCode: '招待コードが無効か、有効期限が切れています',
@@ -6494,10 +6496,10 @@ export default {
         permissionCalcFormula: '共有スペースの権限は共有時に設定します。実効権限は、その権限と共有スペースでのロールのうち低い方になります',
         permissionCalcTip: '実効権限は共有スペースの権限とここでのロールのうち低い方です。閲覧者はこのナレッジベースに対して最大でも読み取り専用となります。',
         inviteMembers: 'メンバーを招待',
-        inviteMembersDesc: '招待コードまたはリンクで他のユーザを共有スペースに招待します',
+        inviteMembersDesc: '招待コードで共有スペースに招待します',
         inviteLink: '招待リンク',
-        inviteLinkValidity: '招待リンクの有効期間',
-        inviteLinkValidityDesc: '新しく生成する招待リンクの有効期間',
+        inviteLinkValidity: '招待コードの有効期間',
+        inviteLinkValidityDesc: '次回の更新で新しく生成される招待コードの有効期間',
         validity1Day: '1日',
         validity7Days: '7日',
         validity30Days: '30日',

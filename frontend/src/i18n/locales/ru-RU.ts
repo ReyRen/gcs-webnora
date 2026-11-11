@@ -3477,10 +3477,10 @@ export default {
       permissionCalcFormula: 'Права в общем пространстве задаются при предоставлении доступа; действующие права — это меньшее из прав в общем пространстве и вашей роли в общем пространстве',
       permissionCalcTip: 'Действующие права — это меньшее из прав в общем пространстве и вашей роли в нём; участники с ролью «только чтение» получают не более чем доступ на чтение к этой базе знаний.',
       inviteMembers: 'Invite Members',
-      inviteMembersDesc: 'Приглашайте других присоединиться к общему пространству по коду или ссылке',
+      inviteMembersDesc: 'Приглашайте участников в общее пространство с помощью кода',
       inviteLink: 'Invite Link',
-      inviteLinkValidity: 'Invite link validity',
-      inviteLinkValidityDesc: 'Validity period for newly generated invite links',
+      inviteLinkValidity: 'Срок действия кода приглашения',
+      inviteLinkValidityDesc: 'Срок действия кодов, созданных после следующего обновления',
       validity1Day: '1 day',
       validity7Days: '7 days',
       validity30Days: '30 days',
@@ -3566,7 +3566,7 @@ export default {
     invite: {
       loading: 'Loading...',
       previewTitle: 'Присоединиться к общему пространству',
-      inputDesc: 'Введите код приглашения (или вставьте его из ссылки-приглашения), чтобы просмотреть информацию об общем пространстве и присоединиться',
+      inputDesc: 'Введите код приглашения, просмотрите информацию об общем пространстве и присоединитесь',
       previewAction: 'View',
       primaryJoin: 'Join',
       invalidCode: 'Invite code is invalid or expired',
@@ -3788,7 +3788,7 @@ export default {
     },
     download: {
       title: 'Загрузка моделей',
-      descPrefix: 'Введите имя модели для загрузки,',
+      descPrefix: 'Введите имя модели для загрузки.',
       browse: 'Открыть каталог моделей Ollama',
       placeholder: 'например: qwen2.5:0.5b',
       download: 'Скачать',
@@ -6374,6 +6374,8 @@ export default {
     defaultLocaleBrowser: 'Браузер / хост'
   },
   knowledgeList: {
+    ownerAccount: 'Owner',
+    ownerUnknown: 'Неизвестная учетная запись',
     create: 'Создать базу знаний',
     subtitle: 'Управляйте и организуйте свои базы знаний, поддерживаются документные и FAQ-базы знаний',
     sharedToOrgs: 'Shared to {count} space(s)',

@@ -26,8 +26,6 @@
             </div>
             <p class="product-desc">
               {{ t('localBrowser.productDescription') }}
-              <a class="product-link" href="https://github.com/Tencent/BrowserSkill" target="_blank"
-                rel="noopener noreferrer">GitHub<t-icon name="jump" size="12px" /></a>
             </p>
           </div>
         </div>
@@ -92,12 +90,6 @@
                   <p v-if="!status.extension_available" class="package-hint">{{ t('localBrowser.packageUnavailable') }}</p>
                 </div>
               </details>
-            </div>
-            <div class="store-actions">
-              <a v-for="store in EXTENSION_STORES" :key="store.label" class="setup-action setup-main-action store-action"
-                :href="store.url" target="_blank" rel="noopener noreferrer">
-                {{ t(store.label) }}<t-icon name="jump" size="13px" />
-              </a>
             </div>
           </li>
           <li>
@@ -185,10 +177,6 @@ const controller = new AbortController()
 let revision = 0
 let alive = true, timer: ReturnType<typeof setTimeout> | undefined, expiry: ReturnType<typeof setTimeout> | undefined, pairExpires = 0
 const MIN_EXTENSION_VERSION = '0.4.1'
-const EXTENSION_STORES = [
-  { label: 'localBrowser.storeInstall', url: 'https://chromewebstore.google.com/detail/hhcmgoofomhgciiibhipgmgkgnoenaoi' },
-  { label: 'localBrowser.edgeStoreInstall', url: 'https://microsoftedge.microsoft.com/addons/detail/browserskill/emacgiaaaiojkkpkddmmdfhmokgmnikg' },
-]
 const versionParts = (value: string) => value.replace(/^v/, '').split(/[.-]/).slice(0, 3).map((part) => Number.parseInt(part, 10) || 0)
 const extensionOutdated = computed(() => {
   const current = status.value.connected ? status.value.extension_version : ''

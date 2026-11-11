@@ -3479,10 +3479,10 @@ export default {
       permissionCalcFormula: '共享空间权限为共享时设定；生效权限取共享空间权限与你的共享空间角色中较低值',
       permissionCalcTip: '生效权限取共享空间权限与你的共享空间角色中较低值；只读成员对此库最多只读。',
       inviteMembers: '邀请成员',
-      inviteMembersDesc: '通过邀请码或链接邀请他人加入共享空间',
+      inviteMembersDesc: '通过邀请码邀请他人加入共享空间',
       inviteLink: '邀请链接',
-      inviteLinkValidity: '邀请链接有效期',
-      inviteLinkValidityDesc: '新生成的邀请链接的有效期，仅影响之后刷新生成的链接',
+      inviteLinkValidity: '邀请码有效期',
+      inviteLinkValidityDesc: '新生成的邀请码的有效期，仅影响之后刷新生成的邀请码',
       validity1Day: '1 天',
       validity7Days: '7 天',
       validity30Days: '30 天',
@@ -3568,7 +3568,7 @@ export default {
     invite: {
       loading: '加载中...',
       previewTitle: '加入共享空间',
-      inputDesc: '输入邀请码或粘贴邀请链接中的邀请码，查看共享空间信息后加入',
+      inputDesc: '输入邀请码，查看共享空间信息后加入',
       previewAction: '查看',
       primaryJoin: '加入',
       invalidCode: '邀请码无效或已过期',
@@ -3790,7 +3790,7 @@ export default {
     },
     download: {
       title: '下载新模型',
-      descPrefix: '输入模型名称下载，',
+      descPrefix: '输入模型名称下载',
       browse: '浏览 Ollama 模型库',
       placeholder: '如：qwen2.5:0.5b',
       download: '下载',
@@ -6375,6 +6375,8 @@ export default {
     defaultLocaleBrowser: '跟随浏览器 / 宿主'
   },
   knowledgeList: {
+    ownerAccount: 'Owner',
+    ownerUnknown: '未知账号',
     create: '新建知识库',
     subtitle: '管理和组织您的知识库，支持文档型和问答型知识库',
     sharedToOrgs: '已共享给 {count} 个空间',

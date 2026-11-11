@@ -10,19 +10,6 @@
       </span>
     </template>
 
-    <template #actions>
-      <IntegrationExternalCta
-        variant="chrome"
-        :label="$t('integrations.chrome.installCta')"
-        :hint="$t('integrations.chrome.installCtaHint')"
-        @click="openChromeStore"
-      >
-        <template #icon>
-          <t-icon name="extension" size="18px" />
-        </template>
-      </IntegrationExternalCta>
-    </template>
-
     <template #main>
       <div class="landing-group">
         <section class="setting-drawer__section">
@@ -91,11 +78,9 @@
 <script setup lang="ts">
 import { copyWithToast } from '@/utils/clipboard'
 import { useRouter } from 'vue-router'
-import { CHROME_EXTENSION_URL } from '@/config/integrations'
 import { useApiBaseUrlDisplay } from '@/composables/useApiBaseUrlDisplay'
 import { useUIStore } from '@/stores/ui'
 import IntegrationLandingLayout from './IntegrationLandingLayout.vue'
-import IntegrationExternalCta from './IntegrationExternalCta.vue'
 
 const router = useRouter()
 const uiStore = useUIStore()
@@ -112,9 +97,6 @@ const capabilityIcons: Record<(typeof capabilityKeys)[number], string> = {
   shortcuts: 'jump',
 }
 
-const openChromeStore = () => {
-  window.open(CHROME_EXTENSION_URL, '_blank', 'noopener,noreferrer')
-}
 
 const openApiSettings = () => {
   router.push({ path: '/platform/settings', query: { section: 'integration-api' } })

@@ -404,6 +404,7 @@ type OrganizationResponse struct {
 	Description string `json:"description"`
 	Avatar      string `json:"avatar,omitempty"`
 	OwnerID     string `json:"owner_id"`
+	OwnerName   string `json:"owner_name,omitempty"`
 	// OwnerTenantID is the persisted owner workspace of the organization
 	// (Plan 3, migration 000046). Frontend uses this to identify the
 	// "owner row" in the workspace-keyed members list — comparing

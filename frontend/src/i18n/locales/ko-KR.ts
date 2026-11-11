@@ -3477,10 +3477,10 @@ export default {
       permissionCalcFormula: '공유 공간 권한은 공유 시 설정되며, 적용 권한은 공유 공간 권한과 내 공유 공간 역할 중 낮은 값입니다',
       permissionCalcTip: '적용 권한은 공유 공간 권한과 내 공유 공간 역할 중 낮은 값이며, 읽기 전용 구성원은 이 지식베이스에 읽기만 가능합니다.',
       inviteMembers: '회원 초대',
-      inviteMembersDesc: '초대 코드 또는 링크를 통해 다른 사람을 공유 공간에 초대하세요.',
+      inviteMembersDesc: '초대 코드로 다른 사용자를 공유 공간에 초대하세요',
       inviteLink: '초대링크',
-      inviteLinkValidity: '초대링크 유효기간',
-      inviteLinkValidityDesc: '새로 생성된 초대링크의 유효기간은 나중에 새로고침하여 생성된 링크에만 영향을 미칩니다.',
+      inviteLinkValidity: '초대 코드 유효 기간',
+      inviteLinkValidityDesc: '다음 갱신부터 새로 생성되는 초대 코드에 적용되는 유효 기간',
       validity1Day: '1일',
       validity7Days: '7일',
       validity30Days: '30일',
@@ -3566,7 +3566,7 @@ export default {
     invite: {
       loading: '로드 중..',
       previewTitle: '공유 공간에 참여하기',
-      inputDesc: '초대코드를 입력하거나 초대링크에 초대코드를 붙여넣고 공유 공간 정보를 확인 후 참여하세요',
+      inputDesc: '초대 코드를 입력하고 공유 공간 정보를 확인한 후 참여하세요',
       previewAction: '확인하다',
       primaryJoin: '참여',
       invalidCode: '초대 코드가 유효하지 않거나 만료되었습니다.',
@@ -3788,7 +3788,7 @@ export default {
     },
     download: {
       title: '새 모델 다운로드',
-      descPrefix: '모델 이름을 입력하여 다운로드, ',
+      descPrefix: '다운로드할 모델 이름을 입력하세요.',
       browse: 'Ollama 모델 라이브러리 탐색',
       placeholder: '예: qwen2.5:0.5b',
       download: '다운로드',
@@ -6374,6 +6374,8 @@ export default {
     defaultLocaleBrowser: '브라우저 / 호스트 기본값'
   },
   knowledgeList: {
+    ownerAccount: 'Owner',
+    ownerUnknown: '알 수 없는 계정',
     create: '지식베이스 생성',
     subtitle: '지식베이스를 관리하고 구성합니다. 문서형과 Q&A형 지식베이스를 지원합니다',
     sharedToOrgs: '{count} 스페이스에 공유됨',

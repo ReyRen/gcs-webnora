@@ -80,10 +80,6 @@
             <label>{{ $t('tenant.api.docLabel') }}</label>
             <p>
               {{ $t('tenant.api.docDescription') }}
-              <a class="doc-link" @click="openApiDoc">
-                {{ $t('tenant.api.openDoc') }}
-                <t-icon name="link" class="link-icon" />
-              </a>
             </p>
           </div>
         </div>
@@ -702,7 +698,6 @@ import {
 } from '@/config/apiKeyCapabilities'
 import { normalizeAPIKeyKnowledgeBaseIDs } from './apiKeyScope'
 import { consumeApiPlaygroundSSE } from './apiPlaygroundSSE'
-import { docsUrl } from '@/utils/docsUrl'
 
 const { t } = useI18n()
 
@@ -1429,10 +1424,6 @@ const saveDesktopPort = async () => {
   } catch (err: unknown) {
     MessagePlugin.error(err instanceof Error ? err.message : t('tenant.api.desktopPortSaveFailed'))
   }
-}
-
-function openApiDoc() {
-  window.open(docsUrl('apiOverview'), '_blank')
 }
 
 function openCreateAPIKeyDialog() {

@@ -7,6 +7,8 @@ export interface Organization {
   description: string
   avatar?: string
   owner_id: string
+  /** Creator account, resolved from owner_id by the list endpoint. */
+  owner_name?: string
   /**
    * Persisted owner tenant of the organization (Plan 3, migration 000046).
    * After Plan 3, member ownership is tenant-keyed: identifying the
@@ -87,6 +89,8 @@ export interface SharedKnowledgeBase {
     name: string
     description: string
     type: string
+    creator_id?: string
+    creator_name?: string
     knowledge_count?: number
     chunk_count?: number
     created_at?: string

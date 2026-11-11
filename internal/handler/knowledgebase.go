@@ -731,7 +731,7 @@ func filterKnowledgeBasesForAPIKeyScope(ctx context.Context, kbs []*types.Knowle
 
 // enrichKBCreatorNames 把 KB 列表里的 CreatorID 批量解析成展示名（真实邮箱
 // 优先，退化到内部用户名）。任意一步失败都吞掉错误：creator_name 缺失只会影响
-// 卡片右下角的徽章展示，不该影响列表本身可用。
+// 卡片创建者账号展示，不该影响列表本身可用。
 func enrichKBCreatorNames(ctx context.Context, userSvc interfaces.UserService, kbs []*types.KnowledgeBase) {
 	if userSvc == nil || len(kbs) == 0 {
 		return

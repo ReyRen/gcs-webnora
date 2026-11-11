@@ -52,6 +52,43 @@ type displayTestAgentShares struct {
 	share *types.AgentShare
 }
 
+type displayTestSharedKBs struct{ interfaces.KBShareService }
+
+func (displayTestSharedKBs) ListSharedKnowledgeBases(context.Context, uint64, types.TenantRole) ([]*types.SharedKnowledgeBaseInfo, error) {
+	return []*types.SharedKnowledgeBaseInfo{
+		{KnowledgeBase: &types.KnowledgeBase{ID: "kb-allowed", CreatorID: "owner"}},
+		{KnowledgeBase: &types.KnowledgeBase{ID: "kb-hidden", CreatorID: "another-owner"}},
+	}, nil
+}
+
+func TestSharedKnowledgeBaseCardShowsOriginalOwnerAccount(t *testing.T) {
+	users := &displayTestUsers{user: &types.User{ID: "owner", Username: "generated-owner", Email: "owner@example.com"}}
+	h := &OrganizationHandler{shareService: displayTestSharedKBs{}, userService: users}
+	c, recorder := inviteRepContext("")
+	ctx := context.WithValue(c.Request.Context(), types.TenantIDContextKey, uint64(7))
+	ctx = context.WithValue(ctx, types.UserIDContextKey, "viewer")
+	ctx = types.WithTenantAPIKeyScope(ctx, types.TenantAPIKeyScope{
+		KnowledgeBaseIDs: types.StringArray{"kb-allowed"},
+		Capabilities:     types.StringArray{string(types.APIKeyCapabilityManageSpaces)},
+	})
+	c.Request = c.Request.WithContext(ctx)
+	h.ListSharedKnowledgeBases(c)
+	require.Empty(t, c.Errors)
+	var body struct {
+		Data []struct {
+			KnowledgeBase struct {
+				CreatorID   string `json:"creator_id"`
+				CreatorName string `json:"creator_name"`
+			} `json:"knowledge_base"`
+		} `json:"data"`
+	}
+	require.NoError(t, json.Unmarshal(recorder.Body.Bytes(), &body))
+	require.Len(t, body.Data, 1)
+	require.Equal(t, "owner", body.Data[0].KnowledgeBase.CreatorID)
+	require.Equal(t, "owner@example.com", body.Data[0].KnowledgeBase.CreatorName)
+	require.NotContains(t, recorder.Body.String(), "kb-hidden")
+}
+
 func (s *displayTestAgentShares) ListSharesByOrganization(context.Context, string) ([]*types.AgentShare, error) {
 	return []*types.AgentShare{s.share}, nil
 }
@@ -116,6 +153,15 @@ func TestCreatorLabelsUseTheSameAccountDisplayName(t *testing.T) {
 	enrichAgentCreatorNames(t.Context(), users, agents)
 	require.Equal(t, u.Email, kbs[0].CreatorName)
 	require.Equal(t, u.Email, agents[0].CreatorName)
+	orgs := []types.OrganizationResponse{
+		{ID: "space", OwnerID: u.ID, OwnerTenantID: 42},
+		{ID: "missing-owner", OwnerID: "deleted-user", OwnerTenantID: 42},
+	}
+	enrichOrgOwnerNames(t.Context(), users, orgs)
+	require.Equal(t, u.Email, orgs[0].OwnerName)
+	require.Equal(t, u.ID, orgs[0].OwnerID)
+	require.Equal(t, uint64(42), orgs[0].OwnerTenantID)
+	require.Empty(t, orgs[1].OwnerName)
 	settings := []*types.SystemSetting{{LastModifiedBy: u.ID}}
 	(&SystemHandler{userSvc: users}).enrichSettingsModifiedBy(t.Context(), settings)
 	require.Equal(t, u.Email, settings[0].LastModifiedByName)

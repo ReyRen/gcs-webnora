@@ -126,16 +126,6 @@
       -->
       <template v-if="selectedProviderType" #subtitle>
         <span>{{ selectedProviderType.name }}</span>
-        <a
-          v-if="selectedProviderType.docs_url"
-          :href="selectedProviderType.docs_url"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="doc-link doc-link--inline"
-        >
-          {{ t('webSearchSettings.viewDocs') }}
-          <t-icon name="link" class="link-icon" />
-        </a>
       </template>
 
       <!--

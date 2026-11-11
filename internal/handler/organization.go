@@ -171,6 +171,7 @@ func (h *OrganizationHandler) ListMyOrganizations(c *gin.Context) {
 	for _, org := range orgs {
 		response = append(response, h.toOrgResponse(ctx, org, userID))
 	}
+	enrichOrgOwnerNames(ctx, h.userService, response)
 
 	resp := types.ListOrganizationsResponse{
 		Organizations: response,
@@ -194,6 +195,37 @@ func (h *OrganizationHandler) ListMyOrganizations(c *gin.Context) {
 		"success": true,
 		"data":    resp,
 	})
+}
+
+// enrichOrgOwnerNames resolves the original creator's account for space cards.
+// OwnerTenantID and the current member identify workspaces, not the creator.
+func enrichOrgOwnerNames(ctx context.Context, userSvc interfaces.UserService, orgs []types.OrganizationResponse) {
+	if userSvc == nil || len(orgs) == 0 {
+		return
+	}
+	idSet := make(map[string]struct{}, len(orgs))
+	for _, org := range orgs {
+		if org.OwnerID != "" {
+			idSet[org.OwnerID] = struct{}{}
+		}
+	}
+	if len(idSet) == 0 {
+		return
+	}
+	ids := make([]string, 0, len(idSet))
+	for id := range idSet {
+		ids = append(ids, id)
+	}
+	users, err := userSvc.GetUsersByIDs(ctx, ids)
+	if err != nil {
+		logger.Warnf(ctx, "Failed to resolve shared space creator names: %v", err)
+		return
+	}
+	for i := range orgs {
+		if user := users[orgs[i].OwnerID]; user != nil {
+			orgs[i].OwnerName = user.DisplayName()
+		}
+	}
 }
 
 // buildResourceCountsByOrg 返回各空间内知识库数与智能体数，供 ListMyOrganizations 和侧栏使用；失败时返回 nil。
@@ -1363,6 +1395,14 @@ func (h *OrganizationHandler) ListSharedKnowledgeBases(c *gin.Context) {
 		return
 	}
 
+	ownerKBs := make([]*types.KnowledgeBase, 0, len(sharedKBs))
+	for _, info := range sharedKBs {
+		if info.KnowledgeBase != nil && apiKeyMaySeeKB(ctx, info.KnowledgeBase.ID) {
+			ownerKBs = append(ownerKBs, info.KnowledgeBase)
+		}
+	}
+	enrichKBCreatorNames(ctx, h.userService, ownerKBs)
+
 	// Each row goes through sharedKBRow so the embedded KnowledgeBase
 	// payload runs SharedStoreDisplay() before serialization. This is
 	// the cross-tenant strip path: callers never receive the owning
@@ -1739,6 +1779,14 @@ func (h *OrganizationHandler) ListOrganizationSharedKnowledgeBases(c *gin.Contex
 		c.Error(apperrors.NewInternalServerError("Failed to list shared knowledge bases"))
 		return
 	}
+
+	ownerKBs := make([]*types.KnowledgeBase, 0, len(list))
+	for _, item := range list {
+		if item.KnowledgeBase != nil && apiKeyMaySeeKB(ctx, item.KnowledgeBase.ID) {
+			ownerKBs = append(ownerKBs, item.KnowledgeBase)
+		}
+	}
+	enrichKBCreatorNames(ctx, h.userService, ownerKBs)
 
 	// Project each row through sharedKBRow so cross-tenant strip applies
 	// uniformly across the space view as well. is_mine and the optional

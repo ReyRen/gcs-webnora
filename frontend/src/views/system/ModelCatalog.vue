@@ -150,8 +150,6 @@
           <h4 class="setting-drawer__section-title">{{ t('modelCatalog.fieldsSection') }}</h4>
           <p class="drawer-hint">
             {{ t(selectedInherited ? 'modelCatalog.fieldsHint' : 'modelCatalog.customHint') }}
-            <a v-if="selected.model.source" :href="String(selected.model.source)" target="_blank" rel="noopener noreferrer"
-              class="drawer-link">{{ t('modelCatalog.sourceLink') }}<t-icon name="jump" /></a>
           </p>
           <div v-for="field in editFields" :key="field.key" class="drawer-row"
             :class="{ 'drawer-row--stacked': field.kind === 'levels' }">

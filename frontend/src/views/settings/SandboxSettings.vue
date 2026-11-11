@@ -14,10 +14,6 @@
                 <div class="hint-popover">
                   <p class="hint-popover__title">{{ $t('settings.sandbox.pageHintTitle') }}</p>
                   <p class="hint-popover__text">{{ $t('settings.sandbox.pageHint') }}</p>
-                  <a class="hint-popover__link" :href="sandboxGuideUrl" target="_blank" rel="noopener noreferrer">
-                    {{ $t('settings.sandbox.viewClusterGuide') }}
-                    <t-icon name="jump" size="14px" />
-                  </a>
                 </div>
               </template>
             </t-popup>
@@ -272,7 +268,6 @@ import { useConfirmDelete } from '@/components/settings/useConfirmDelete'
 import { getSession } from '@/api/chat/index'
 import { useDeploymentCapabilitiesStore } from '@/stores/deploymentCapabilities'
 import { formatStringDate } from '@/utils'
-import { docsUrl } from '@/utils/docsUrl'
 import { matchesResourceQuery } from '@/utils/resourceListSearch'
 import {
   deleteSandboxConfig,
@@ -297,7 +292,6 @@ const dockerBackendEnabled = computed(() =>
   deploymentCapabilities.isSupported('settings.sandbox.docker'),
 )
 
-const sandboxGuideUrl = docsUrl('sandboxDeployment')
 
 const backendTypes = [...NAMED_SANDBOX_BACKEND_TYPES]
 
