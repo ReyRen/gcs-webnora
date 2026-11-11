@@ -210,6 +210,9 @@ func BuildFileServiceForProvider(
 		return svc
 	}
 	if provider == "local" {
+		if filesvc.PlatformUserStorageEnabled() {
+			return defaultSvc
+		}
 		externalURL := strings.TrimSpace(os.Getenv("APP_EXTERNAL_URL"))
 		return filesvc.NewLocalFileService(baseDir, externalURL)
 	}

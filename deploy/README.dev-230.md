@@ -78,3 +78,6 @@ Mutagen 源码同步、230 服务部署与 GitHub 发布分别核对。完成发
 迁移回归覆盖全新库、上游库、旧 SSO 库，以及重复启动。
 
 前端完整测试包含 Bash 交互测试；Alpine Node 镜像需先安装 `bash`，运行 Vite 本身不依赖它。
+## 用户文件存储
+
+Harness 集成部署的用户文件、Redis 与受限账号配置见[用户存储与迁移](../docs/integrations/user-storage.md)。当前 Compose 已使用用户 JFS 目录；现有本地文件部署第一次升级时必须先停写、备份并执行迁移。

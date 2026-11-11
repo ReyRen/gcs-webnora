@@ -49,7 +49,7 @@ func TestSQLitePlatformSSOUpgradePaths(t *testing.T) {
 			require.NoError(t, RunMigrationsWithOptions(dsn, opts))
 			require.NoError(t, RunMigrationsWithOptions(dsn, opts), "restarting is idempotent")
 			version, dirty := sqliteMigrationState(t, db)
-			require.Equal(t, 53, version)
+			require.Equal(t, 54, version)
 			require.False(t, dirty)
 			require.True(t, sqliteTableExists(t, db, "credential_vault_items"))
 			require.True(t, sqliteTableExists(t, db, "platform_sso_identities"))
@@ -120,11 +120,11 @@ func TestPostgresPlatformSSOUpgradePaths(t *testing.T) {
 			var version int
 			var dirty bool
 			require.NoError(t, db.QueryRow("SELECT version,dirty FROM schema_migrations").Scan(&version, &dirty))
-			require.Equal(t, 137, version)
+			require.Equal(t, 138, version)
 			require.False(t, dirty)
 			var tables int
-			require.NoError(t, db.QueryRow("SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('platform_sso_identities','platform_sso_sessions','credential_vault_items')").Scan(&tables))
-			require.Equal(t, 3, tables)
+			require.NoError(t, db.QueryRow("SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('platform_sso_identities','platform_sso_sessions','credential_vault_items','platform_storage_bindings')").Scan(&tables))
+			require.Equal(t, 4, tables)
 			if state == "legacy" {
 				requirePlatformSSOSentinel(t, db)
 			}

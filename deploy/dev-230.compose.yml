@@ -56,7 +56,11 @@ services:
     ports:
       - "127.0.0.1:6379:6379"
     volumes:
-      - ${WEBNORA_RUNTIME_DIR}/data/redis:/data
+      - type: bind
+        source: ${WEBNORA_SERVICE_STORAGE_ROOT:-/storage-root-jfs/harness-system/gcs-webnora}/redis
+        target: /data
+        bind:
+          create_host_path: false
     healthcheck:
       test: ["CMD-SHELL", "REDISCLI_AUTH=$$REDIS_PASSWORD redis-cli ping | grep -q PONG"]
       interval: 5s
@@ -91,6 +95,10 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile.dev-230
     container_name: gcs-webnora-app-dev
+    user: "${WEBNORA_APP_UID:-21090}:${WEBNORA_APP_GID:-21090}"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
     logging: *default-logging
     working_dir: /workspace
     network_mode: host
@@ -105,7 +113,10 @@ services:
       GOTMPDIR: /runtime/tmp
       GOMAXPROCS: "8"
       GOFLAGS: -p=8
-      LOCAL_STORAGE_BASE_DIR: /runtime/data/files
+      HOME: /runtime/home
+      LOCAL_STORAGE_LAYOUT: platform-user
+      LOCAL_STORAGE_BASE_DIR: /storage-root-jfs
+      LOCAL_STORAGE_LEGACY_BASE_DIR: /runtime/data/files
       LOG_PATH: /runtime/logs/app.log
     command: ["bash", "/workspace/scripts/dev-230.sh", "app"]
     volumes:
@@ -113,6 +124,11 @@ services:
       - ${WEBNORA_RUNTIME_DIR}:/runtime
       - ${WEBNORA_RUNTIME_DIR}/toolchains/go1.26.0:/usr/local/go:ro
       - ${WEBNORA_RUNTIME_DIR}/data/docreader-tmp:/tmp/docreader:ro
+      - type: bind
+        source: ${WEBNORA_USER_STORAGE_ROOT:-/storage-root-jfs}
+        target: /storage-root-jfs
+        bind:
+          create_host_path: false
     depends_on:
       postgres:
         condition: service_healthy
