@@ -18,11 +18,11 @@ test('conversation and agent bookmarks return to knowledge management', () => {
 })
 
 test('knowledge configuration remains available while independent-app panels are hidden', () => {
-  for (const section of ['general', 'tenant', 'members', 'defaults', 'models', 'ollama', 'vectorstore',
+  for (const section of ['general', 'tenant', 'members', 'defaults', 'vectorstore',
     'parser', 'storage', 'integration-api', 'integration-mcpserver', 'system-global', 'platform-api-keys']) {
     assert.equal(isKnowledgeWorkspaceSetting(section), true, section)
   }
-  for (const section of ['assistant', 'userprofile', 'chathistory', 'memory', 'mymemory', 'websearch', 'sandbox', 'envvars', 'integration-im']) {
+  for (const section of ['models', 'ollama', 'weknoracloud', 'model-catalog', 'assistant', 'userprofile', 'chathistory', 'memory', 'mymemory', 'websearch', 'sandbox', 'envvars', 'integration-im']) {
     assert.equal(isKnowledgeWorkspaceSetting(section), false, section)
   }
 })
@@ -46,7 +46,8 @@ function visible(section: string, role: string, workspace = true, systemAdmin = 
 }
 
 test('the simplified configuration keeps existing tenant and system permissions', () => {
-  assert.equal(visible('models', 'viewer'), true, 'members retain read-only model visibility')
+  assert.equal(visible('models', 'viewer'), false, 'Harness owns model administration in the knowledge workspace')
+  assert.equal(visible('models', 'viewer', false), true, 'standalone deployments retain model administration')
   assert.equal(visible('parser', 'viewer'), false)
   assert.equal(visible('parser', 'admin'), true)
   assert.equal(visible('system-global', 'owner'), false)

@@ -51,7 +51,7 @@
       >
         <div class="model-option add">
           <t-icon name="add" class="add-icon" />
-          <span class="model-name">{{ $t('model.addModelInSettings') }}</span>
+          <span class="model-name">{{ $t(KNOWLEDGE_WORKSPACE ? 'model.harnessSettings' : 'model.addModelInSettings') }}</span>
         </div>
       </t-option>
     </t-select>
@@ -66,6 +66,8 @@ import { MessagePlugin } from 'tdesign-vue-next'
 import { useI18n } from 'vue-i18n'
 import { filterModelsByType } from './modelSelectorFilter'
 import { isDefaultModelForType } from '@/utils/modelDefaults'
+import { KNOWLEDGE_WORKSPACE } from '@/config/knowledgeWorkspace'
+import { useUIStore } from '@/stores/ui'
 import {
   formatContextWindow,
   isDefaultContextWindow,
@@ -95,6 +97,7 @@ const emit = defineEmits<{
   'update:selectedModelId': [value: string]
   'add-model': []
 }>()
+const uiStore = useUIStore()
 
 const models = ref<ModelConfig[]>([])
 const loading = ref(false)
@@ -157,7 +160,8 @@ const loadModels = async () => {
 const handleModelChange = (value?: string) => {
   // 如果选择的是添加模型选项，触发添加事件而不更新选中值
   if (value === '__add_model__') {
-    emit('add-model')
+    if (KNOWLEDGE_WORKSPACE) uiStore.openSettings('models')
+    else emit('add-model')
     return
   }
   emit('update:selectedModelId', value || '')

@@ -14,9 +14,11 @@ import { useRoleLabel } from '@/composables/useRoleLabel'
 import { notifyLoginSuccess } from '@/utils/loginNotify'
 import { renderWorkspaceNotifyContent } from '@/utils/workspaceNotifyContent'
 import { installPlatformSsoLogout } from '@/utils/platformSso'
+import { installHarnessModelUpdates } from '@/utils/harnessModelSettings'
 import { logout as logoutAPI } from '@/api/auth'
 
 let stopPlatformSsoLogout: (() => void) | undefined
+let stopHarnessModelUpdates: (() => void) | undefined
 
 // TDesign locale configs
 import enUSConfig from 'tdesign-vue-next/esm/locale/en_US'
@@ -245,6 +247,7 @@ const showPendingTenantSwitchToast = () => {
 }
 
 onMounted(() => {
+  stopHarnessModelUpdates = installHarnessModelUpdates()
   stopPlatformSsoLogout = installPlatformSsoLogout(async () => {
     try { await logoutAPI() } finally {
       authStore.logout()
@@ -278,6 +281,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  stopHarnessModelUpdates?.()
   stopPlatformSsoLogout?.()
   if (updateCheckTimer) {
     clearInterval(updateCheckTimer)

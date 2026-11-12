@@ -3847,7 +3847,7 @@ export default {
     },
     sidebar: {
       basic: 'Basic Information',
-      models: 'Model Configuration',
+      models: 'Model selection',
       vectorStore: 'Vector Store',
       chunking: 'Chunking Settings',
       storage: 'Storage Engine',
@@ -4346,7 +4346,7 @@ export default {
       exportFailed: 'Export failed'
     },
     models: {
-      title: 'Model Configuration',
+      title: 'Model selection',
       description: 'Select appropriate AI models for the knowledge base',
       llmLabel: 'LLM Model',
       llmDesc: 'Large language model used for summarization and abstract generation (optional)',
@@ -5553,6 +5553,8 @@ export default {
       },
       modelName: 'Model Name',
       defaultTag: 'Default',
+      harnessSettings: 'Manage models in Harness',
+      harnessSettingsUnavailable: 'Open Harness settings to manage models',
       addModelInSettings: 'Go to global settings to add models',
       loadFailed: 'Failed to load model list',
       selectModelPlaceholder: 'Select a model',

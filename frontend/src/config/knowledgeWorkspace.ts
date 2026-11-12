@@ -14,13 +14,18 @@ export function knowledgeWorkspaceRedirect(name: unknown): string | undefined {
 }
 
 const workspaceSettings = new Set([
-  'general', 'tenant', 'members', 'defaults', 'models', 'ollama',
+  'general', 'tenant', 'members', 'defaults',
   'vectorstore', 'parser', 'storage', 'integration-api', 'integration-mcpserver',
-  'system-global', 'model-catalog', 'runtime-queues', 'platform-api-keys',
+  'system-global', 'runtime-queues', 'platform-api-keys',
   'system-audit-log', 'system',
 ])
 
 /** Filters presentation only; existing role and backend checks still apply. */
 export function isKnowledgeWorkspaceSetting(section: string): boolean {
   return workspaceSettings.has(section)
+}
+
+/** Model administration belongs to Harness; application model selections stay local. */
+export function isHarnessModelSetting(section: string): boolean {
+  return ['models', 'ollama', 'weknoracloud', 'model-catalog'].includes(section)
 }

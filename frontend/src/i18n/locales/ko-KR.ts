@@ -4258,6 +4258,8 @@ export default {
     },
     modelName: '모델 이름',
     defaultTag: '기본값',
+    harnessSettings: 'Manage models in Harness',
+    harnessSettingsUnavailable: 'Open Harness settings to manage models',
     addModelInSettings: '전역 설정에서 모델 추가하기',
     loadFailed: '모델 목록 로드 실패',
     selectModelPlaceholder: '모델을 선택해주세요',
@@ -5582,7 +5584,7 @@ export default {
       }
     },
     models: {
-      title: '모델 설정',
+      title: '모델 선택',
       description: '지식베이스에 적합한 AI 모델 선택',
       llmLabel: 'LLM 대규모 언어 모델',
       llmDesc: '요약 및 개요를 위한 대규모 언어 모델',
@@ -6081,7 +6083,7 @@ export default {
     },
     sidebar: {
       basic: '기본 정보',
-      models: '모델 설정',
+      models: '모델 선택',
       vectorStore: '벡터 스토어',
       chunking: '청크 설정',
       storage: '스토리지 엔진',

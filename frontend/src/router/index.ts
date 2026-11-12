@@ -12,7 +12,7 @@ import { normalizeSettingsSection } from '@/config/settingsRoute'
 import { isToolboxSection, toolboxLocation } from '@/config/toolbox'
 import { getLoginRoute, getPlatformSsoConfig, isPlatformSsoOnlyLogin, platformSsoEntryRedirect } from '@/utils/platformSso'
 import { appEntryRoute } from './appEntryRoute'
-import { KNOWLEDGE_WORKSPACE, knowledgeWorkspaceRedirect } from '@/config/knowledgeWorkspace'
+import { KNOWLEDGE_WORKSPACE, knowledgeWorkspaceRedirect, isHarnessModelSetting } from '@/config/knowledgeWorkspace'
 
 /** Lite /桌面 WebView 硬刷新时可能只打开 `/`，用 session 记住上次页面以便恢复 */
 const LITE_LAST_PATH_KEY = 'weknora_lite_last_path'
@@ -63,7 +63,8 @@ const router = createRouter({
     {
       path: '/harness/models',
       name: 'harnessModels',
-      component: () => import('../views/settings/HarnessModels.vue'),
+      ...(KNOWLEDGE_WORKSPACE ? { redirect: '/platform/knowledge-bases' }
+        : { component: () => import('../views/settings/HarnessModels.vue') }),
       meta: { requiresAuth: true, requiresInit: false },
     },
     appEntryRoute,
@@ -324,6 +325,11 @@ router.beforeEach(async (to, from, next) => {
   const platformEntry = platformSsoEntryRedirect(to.path, hasPendingOIDCCallback())
   if (platformEntry) {
     next({ path: platformEntry, replace: true })
+    return
+  }
+  if (KNOWLEDGE_WORKSPACE && to.path === '/platform/settings'
+    && typeof to.query.section === 'string' && isHarnessModelSetting(to.query.section)) {
+    next({ path: '/platform/knowledge-bases', replace: true })
     return
   }
 
