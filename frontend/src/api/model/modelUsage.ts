@@ -9,6 +9,7 @@ export const KNOWN_MODEL_USAGE_BINDINGS = [
   'asr_model',
   'wiki_synthesis_model',
   'auto_tag_model',
+  'profile_model',
   'chat_model',
   'rerank_model',
   'query_understand_model',
@@ -94,7 +95,8 @@ export function parseModelUsageDetails(value: unknown): ModelUsageDetails | null
     knowledge_base_total: parseTotal(value.knowledge_base_total, knowledgeBases.length),
     agent_total: parseTotal(value.agent_total, agents.length),
   }
-  if (knowledgeBases.length === 0 && agents.length === 0 && memoryBindings.length === 0) {
+  if (knowledgeBases.length === 0 && agents.length === 0 && memoryBindings.length === 0
+    && details.knowledge_base_total === 0 && details.agent_total === 0) {
     return null
   }
   return details
@@ -137,6 +139,7 @@ const knowledgeBaseUsageSections: Partial<Record<KnownModelUsageBinding, Knowled
   question_model: 'advanced',
   wiki_synthesis_model: 'models',
   auto_tag_model: 'models',
+  profile_model: 'models',
   image_processing_model: 'multimodal',
   vlm_model: 'multimodal',
   asr_model: 'asr',

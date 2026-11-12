@@ -443,7 +443,7 @@ func (s *knowledgeService) CloneChunk(ctx context.Context, src, dst *types.Knowl
 	if err != nil {
 		return err
 	}
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, dst.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithModelBindings(ctx, dst.EmbeddingModelID), dst.EmbeddingModelID)
 	if err != nil {
 		return err
 	}
@@ -779,7 +779,7 @@ func (s *knowledgeService) cloneFAQKnowledgeBase(
 	}
 
 	// Get embedding model
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, dstKB.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, dstKB), dstKB.EmbeddingModelID)
 	if err != nil {
 		logger.Errorf(ctx, "Failed to get embedding model: %v", err)
 		handleError(progress, err, "Failed to get embedding model")
@@ -1403,7 +1403,7 @@ func (s *knowledgeService) moveKnowledgeReuseVectors(
 		if err != nil {
 			return err
 		}
-		model, err := s.modelService.GetEmbeddingModel(ctx, knowledge.EmbeddingModelID)
+		model, err := s.modelService.GetEmbeddingModel(types.WithModelBindings(ctx, knowledge.EmbeddingModelID), knowledge.EmbeddingModelID)
 		if err != nil {
 			return err
 		}

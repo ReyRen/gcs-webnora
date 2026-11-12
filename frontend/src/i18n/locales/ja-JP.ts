@@ -6063,6 +6063,7 @@ export default {
           asr_model: '音声認識モデル',
           wiki_synthesis_model: 'Wiki生成モデル',
           auto_tag_model: '自動タグ付けモデル',
+        profile_model: 'ナレッジベースの説明モデル',
           chat_model: 'チャットモデル',
           rerank_model: 'リランクモデル',
           query_understand_model: 'クエリ理解モデル',

@@ -103,3 +103,5 @@ func TestAutomationModelEditDoesNotChangeSuspendedRun(t *testing.T) {
 	require.Equal(t, "one", f.sessions.last().req.SummaryModelID)
 	require.Equal(t, "two", f.reload(t, a.ID).ModelID)
 }
+
+func (s *automationModels) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

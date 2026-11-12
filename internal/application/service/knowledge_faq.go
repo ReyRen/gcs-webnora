@@ -165,7 +165,7 @@ func (s *knowledgeService) CreateFAQEntry(ctx context.Context,
 	}
 
 	// 获取embedding模型
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get embedding model: %w", err)
 	}
@@ -410,7 +410,7 @@ func (s *knowledgeService) UpdateFAQEntry(ctx context.Context,
 		return nil, err
 	}
 
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	if err != nil {
 		return nil, err
 	}
@@ -565,7 +565,7 @@ func (s *knowledgeService) AddSimilarQuestions(ctx context.Context,
 		return nil, err
 	}
 
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	if err != nil {
 		return nil, err
 	}

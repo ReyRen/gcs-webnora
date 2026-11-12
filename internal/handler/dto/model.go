@@ -227,6 +227,10 @@ type ModelParametersDTO struct {
 // Builtin models are shared across tenants — strip BaseURL (which can leak
 // the tenant's private endpoint) and any non-shared parameters.
 func NewModelResponse(ctx context.Context, m *types.Model) *ModelResponse {
+	return newModelResponse(ctx, m, CanViewIntegrationSecrets(ctx))
+}
+
+func newModelResponse(ctx context.Context, m *types.Model, canViewConfig bool) *ModelResponse {
 	if m == nil {
 		return nil
 	}
@@ -246,7 +250,7 @@ func NewModelResponse(ctx context.Context, m *types.Model) *ModelResponse {
 		Spec:                m.Parameters.Spec,
 	}
 	canManageBuiltin := m.IsBuiltin && types.IsSystemAdminFromContext(ctx)
-	if !CanViewIntegrationSecrets(ctx) && !canManageBuiltin {
+	if !canViewConfig && !canManageBuiltin {
 		params.ExtraConfig = nil
 		params.CustomHeaders = nil
 		params.BaseURL = ""
@@ -349,4 +353,16 @@ func NewModelResponses(ctx context.Context, models []*types.Model) []*ModelRespo
 		out = append(out, NewModelResponse(ctx, m))
 	}
 	return out
+}
+
+// AvailableModelResponse includes per-record rights in the unified directory.
+type AvailableModelResponse struct {
+	*ModelResponse
+	CanManage bool `json:"can_manage"`
+}
+
+// NewAvailableModelResponse applies the model owner's permission independently
+// of the user's role in the currently open application.
+func NewAvailableModelResponse(ctx context.Context, row types.AvailableModel) AvailableModelResponse {
+	return AvailableModelResponse{ModelResponse: newModelResponse(ctx, row.Model, row.CanManage), CanManage: row.CanManage}
 }

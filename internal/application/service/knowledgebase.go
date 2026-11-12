@@ -550,7 +550,7 @@ func (s *knowledgeBaseService) resolveUpdatedVLMConfig(
 		}
 		return next, nil
 	}
-	model, err := s.modelService.GetModelByID(ctx, next.ModelID)
+	model, err := s.modelService.GetUsableModel(ctx, next.ModelID)
 	if errors.Is(err, ErrModelNotFound) {
 		return types.VLMConfig{}, apperrors.NewBadRequestError("vlm_config.model_id: model not found")
 	}
@@ -613,6 +613,7 @@ func (s *knowledgeBaseService) UpdateKnowledgeBase(ctx context.Context,
 		return nil, err
 	}
 
+	ctx = types.WithKnowledgeBaseModels(ctx, kb)
 	changedFields := make([]string, 0, 3)
 	profileWasEnabled := kb.ProfileConfig.IsEnabled()
 	if kb.Name != name {
@@ -826,7 +827,7 @@ func (s *knowledgeBaseService) requireModelType(
 	if s.modelService == nil {
 		return apperrors.NewInternalServerError("model service is not configured")
 	}
-	model, err := s.modelService.GetModelByID(ctx, id)
+	model, err := s.modelService.GetUsableModel(ctx, id)
 	if err != nil || model == nil {
 		return apperrors.NewBadRequestError(field + " does not match a model")
 	}
@@ -1190,7 +1191,7 @@ func (s *knowledgeBaseService) ProcessKBDelete(ctx context.Context, t *asynq.Tas
 			}
 
 			for key, knowledgeGroup := range embeddingGroups {
-				embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, key.EmbeddingModelID)
+				embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithModelBindings(ctx, key.EmbeddingModelID), key.EmbeddingModelID)
 				if err != nil {
 					logger.Warnf(ctx, "Failed to get embedding model %s: %v", key.EmbeddingModelID, err)
 					continue

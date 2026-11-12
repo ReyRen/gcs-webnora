@@ -1,5 +1,6 @@
 import { get, post, postUpload, put, del } from '../../utils/request';
 import i18n from '@/i18n'
+import { KNOWLEDGE_WORKSPACE } from '@/config/knowledgeWorkspace'
 import { ModelInUseError, modelInUseErrorFromRequest } from './modelUsage'
 
 export * from './modelUsage'
@@ -137,9 +138,11 @@ export function createModel(data: ModelConfig): Promise<ModelConfig> {
 }
 
 // 获取模型列表
-export function listModels(type?: string): Promise<ModelConfig[]> {
+export function listModels(type?: string, knowledgeBaseID?: string): Promise<ModelConfig[]> {
   return new Promise((resolve, reject) => {
-    const url = `/api/v1/models`;
+    const base = KNOWLEDGE_WORKSPACE ? '/api/v1/models/available' : '/api/v1/models';
+    const url = KNOWLEDGE_WORKSPACE && knowledgeBaseID
+      ? `${base}?knowledge_base_id=${encodeURIComponent(knowledgeBaseID)}` : base;
     get(url)
       .then((response: any) => {
         if (response.success && response.data) {

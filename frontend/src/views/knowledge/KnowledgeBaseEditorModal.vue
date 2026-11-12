@@ -615,6 +615,8 @@ import KbCreateContextualGuide from '@/components/KbCreateContextualGuide.vue'
 import { KB_EDITOR_FOCUS_SECTION_EVENT, markContextualGuideDone } from '@/config/contextualGuides'
 import { MessagePlugin, DialogPlugin } from 'tdesign-vue-next'
 import { useModalShell } from '@/composables/useModalShell'
+import { listModels } from '@/api/model'
+import { KNOWLEDGE_WORKSPACE } from '@/config/knowledgeWorkspace'
 import SettingsModalShell from '@/components/SettingsModalShell.vue'
 import {
   createKnowledgeBase,
@@ -1065,11 +1067,17 @@ const initFormData = (type: 'document' | 'faq' = 'document') => {
 }
 
 // 加载所有模型
+let modelLoadGeneration = 0
 const loadAllModels = async (force = false) => {
+  const generation = ++modelLoadGeneration
+  const kbID = editorMode.value === 'edit' ? activeKbId.value : undefined
   try {
     await chatResources.ensureModels(force)
-    allModels.value = chatResources.allModels || []
+    const models = KNOWLEDGE_WORKSPACE && kbID ? await listModels(undefined, kbID) : chatResources.allModels || []
+    if (generation !== modelLoadGeneration || !props.visible || kbID !== (editorMode.value === 'edit' ? activeKbId.value : undefined)) return
+    allModels.value = models
   } catch (error) {
+    if (generation !== modelLoadGeneration || !props.visible) return
     console.error('Failed to load model list:', error)
     MessagePlugin.error(t('knowledgeEditor.messages.loadModelsFailed'))
     allModels.value = []
@@ -2002,9 +2010,9 @@ watch(
   }
 )
 
-watch(() => chatResources.allModels, (list) => {
+watch(() => chatResources.allModels, async () => {
   if (props.visible) {
-    allModels.value = list || []
+    await loadAllModels()
     applyDefaultModelsIfEmpty()
   }
 })

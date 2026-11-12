@@ -159,7 +159,7 @@ func (s *sessionService) resolveChatModelID(
 			return "", 0, fmt.Errorf("chat model is not configured: please set model_id on agent %s", customAgent.ID)
 		}
 		if configuredAgentModelID != "" {
-			model, err := s.modelService.GetModelByID(ctx, configuredAgentModelID)
+			model, err := s.modelService.GetUsableModel(types.WithAgentModels(ctx, customAgent), configuredAgentModelID)
 			if err != nil || model == nil || model.Type != types.ModelTypeKnowledgeQA {
 				return "", 0, fmt.Errorf(
 					"configured chat model %s is unavailable for agent %s", configuredAgentModelID, customAgent.ID,
@@ -175,7 +175,7 @@ func (s *sessionService) resolveChatModelID(
 
 	summaryModelID = strings.TrimSpace(summaryModelID)
 	if summaryModelID != "" {
-		if model, err := s.modelService.GetModelByID(ctx, summaryModelID); err == nil && model != nil &&
+		if model, err := s.modelService.GetUsableModel(ctx, summaryModelID); err == nil && model != nil &&
 			model.Type == types.ModelTypeKnowledgeQA {
 			logger.Infof(ctx, "Using request's summary model override: %s", summaryModelID)
 			return summaryModelID, tenantID, nil

@@ -555,7 +555,7 @@ func (s *knowledgeService) executeKnowledgeDelete(plan *knowledgeDeletePlan, sin
 				logger.GetLogger(ctx).WithField("error", err).Errorf("DeleteKnowledge delete knowledge embedding failed")
 				return err
 			}
-			embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, group.EmbeddingModelID)
+			embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithModelBindings(ctx, group.EmbeddingModelID), group.EmbeddingModelID)
 			if err != nil {
 				logger.GetLogger(ctx).WithField("error", err).Errorf("DeleteKnowledge get embedding model failed")
 				return err
@@ -701,7 +701,7 @@ func (s *knowledgeService) cleanupKnowledgeResources(ctx context.Context, knowle
 			logger.GetLogger(ctx).WithField("error", err).Error("Failed to init retrieve engine during cleanup")
 			cleanupErr = errors.Join(cleanupErr, err)
 		} else {
-			embeddingModel, modelErr := s.modelService.GetEmbeddingModel(ctx, knowledge.EmbeddingModelID)
+			embeddingModel, modelErr := s.modelService.GetEmbeddingModel(types.WithModelBindings(ctx, knowledge.EmbeddingModelID), knowledge.EmbeddingModelID)
 			if modelErr != nil {
 				logger.GetLogger(ctx).WithField("error", modelErr).Error("Failed to get embedding model during cleanup")
 				cleanupErr = errors.Join(cleanupErr, modelErr)

@@ -380,3 +380,5 @@ func TestRerankResponseIncludesImageCapabilities(t *testing.T) {
 	require.NotNil(t, response.Capabilities)
 	require.Contains(t, response.Capabilities.Input, "image")
 }
+
+func (s *debugImageService) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

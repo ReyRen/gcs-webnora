@@ -828,7 +828,7 @@ func (s *chunkService) syncChunkIndex(ctx context.Context, chunk *types.Chunk) e
 	if !kb.NeedsEmbeddingModel() {
 		return nil
 	}
-	embedder, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+	embedder, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	if err != nil {
 		return err
 	}
@@ -997,7 +997,7 @@ func (s *chunkService) DeleteGeneratedQuestion(ctx context.Context, chunkID stri
 		return fmt.Errorf("failed to create retrieve engine: %w", err)
 	}
 
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	if err != nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{
 			"embedding_model_id": kb.EmbeddingModelID,

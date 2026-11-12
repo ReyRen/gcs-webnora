@@ -33,6 +33,7 @@ type modelService struct {
 	ollamaService *ollama.OllamaService
 	pooler        embedding.EmbedderPooler
 	tenantService interfaces.TenantService
+	catalog       interfaces.UserModelCatalogService
 }
 
 // NewModelService creates a new model service instance
@@ -42,6 +43,7 @@ func NewModelService(repo interfaces.ModelRepository,
 	ollamaService *ollama.OllamaService,
 	pooler embedding.EmbedderPooler,
 	tenantService interfaces.TenantService,
+	catalog interfaces.UserModelCatalogService,
 ) interfaces.ModelService {
 	return &modelService{
 		repo:          repo,
@@ -50,6 +52,7 @@ func NewModelService(repo interfaces.ModelRepository,
 		ollamaService: ollamaService,
 		pooler:        pooler,
 		tenantService: tenantService,
+		catalog:       catalog,
 	}
 }
 
@@ -294,9 +297,21 @@ func (s *modelService) GetModelByID(ctx context.Context, id string) (*types.Mode
 	return nil, errors.New("abnormal model status")
 }
 
-// ListModels returns all models belonging to the tenant
+// ListModels returns execution choices: user-available models for interactive
+// calls, or configured business defaults for tenant-owned background work.
 func (s *modelService) ListModels(ctx context.Context) ([]*types.Model, error) {
 	logger.Info(ctx, "Start listing models")
+	if _, scopedKey := types.TenantAPIKeyScopeFromContext(ctx); s.catalog != nil && !scopedKey && types.CallerFromContext(ctx).UserID != "" {
+		rows, err := s.catalog.ListAvailableModels(ctx)
+		if err != nil {
+			return nil, err
+		}
+		models := make([]*types.Model, 0, len(rows))
+		for _, row := range rows {
+			models = append(models, row.Model)
+		}
+		return models, nil
+	}
 
 	tenantID := types.MustTenantIDFromContext(ctx)
 	logger.Infof(ctx, "Listing models for tenant ID: %d", tenantID)
@@ -312,6 +327,24 @@ func (s *modelService) ListModels(ctx context.Context) ([]*types.Model, error) {
 	// GetModelByID is left alone: its result is written back by UpdateModel,
 	// and this overlay must never be persisted.
 	if settings := s.workspaceDefaultSettings(ctx, tenantID); settings != nil {
+		if s.catalog != nil {
+			seen := make(map[string]bool, len(models))
+			for _, model := range models {
+				seen[model.ID] = true
+			}
+			ids := append([]string{settings.UtilityModelID}, modelSlotIDs(settings)...)
+			for _, id := range ids {
+				if id == "" || seen[id] {
+					continue
+				}
+				model, err := s.GetUsableModel(ctx, id)
+				if err != nil {
+					return nil, err
+				}
+				models = append(models, model)
+				seen[id] = true
+			}
+		}
 		settings.ApplyModelDefaults(models)
 	}
 
@@ -487,6 +520,14 @@ func (s *modelService) DeleteModel(ctx context.Context, id string) error {
 		return apperrors.NewBadRequestError("builtin models cannot be deleted")
 	}
 
+	counts := types.ModelReferenceCounts{}
+	if s.catalog != nil {
+		var err error
+		counts, err = s.catalog.CountReferences(ctx, id)
+		if err != nil {
+			return err
+		}
+	}
 	usage, err := s.getModelUsageDetails(ctx, tenantID, id)
 	if err != nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{
@@ -494,7 +535,9 @@ func (s *modelService) DeleteModel(ctx context.Context, id string) error {
 		})
 		return err
 	}
-	if usage.InUse() {
+	usage.KnowledgeBaseTotal = max(usage.KnowledgeBaseTotal, counts.KnowledgeBases)
+	usage.AgentTotal = max(usage.AgentTotal, counts.Agents)
+	if usage.InUse() || counts.InUse() {
 		kbCount := usage.KnowledgeBaseTotal
 		if kbCount == 0 {
 			kbCount = int64(len(usage.KnowledgeBases))
@@ -505,8 +548,12 @@ func (s *modelService) DeleteModel(ctx context.Context, id string) error {
 		}
 		memoryInUse := len(usage.LongTermMemory.Bindings) > 0
 		logger.Warnf(ctx, "Model %s is in use: kb=%d agent=%d memory=%t", id, kbCount, agentCount, memoryInUse)
+		message := formatModelInUseMessage(kbCount, agentCount, memoryInUse)
+		if counts.TenantSettings > 0 {
+			message = "模型正在被业务配置使用，请先调整知识库、应用或业务默认设置中的引用"
+		}
 		return apperrors.NewModelInUseError(
-			formatModelInUseMessage(kbCount, agentCount, memoryInUse),
+			message,
 			usage,
 		)
 	}
@@ -596,7 +643,7 @@ func (s *modelService) getModelUsageDetails(
 // Takes a model ID and returns an Embedder interface implementation
 func (s *modelService) GetEmbeddingModel(ctx context.Context, modelId string) (embedding.Embedder, error) {
 	// Get the model details
-	model, err := s.GetModelByID(ctx, modelId)
+	model, err := s.GetUsableModel(ctx, modelId)
 	if err != nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{
 			"model_id": modelId,
@@ -606,7 +653,7 @@ func (s *modelService) GetEmbeddingModel(ctx context.Context, modelId string) (e
 
 	logger.Infof(ctx, "Getting embedding model: %s, source: %s", model.Name, model.Source)
 
-	appID, appSecret := s.resolveWeKnoraCloudCredentials(ctx, &model.Parameters)
+	appID, appSecret := s.resolveWeKnoraCloudCredentials(modelCredentialsContext(ctx, model), &model.Parameters)
 
 	embedder, err := embedding.NewEmbedder(embedding.ConfigFromModel(model, appID, appSecret), s.pooler, s.ollamaService)
 	if err != nil {
@@ -632,7 +679,7 @@ func (s *modelService) GetEmbeddingModelForTenant(ctx context.Context, modelId s
 	}
 
 	// Fetch model from repository using the specified tenant ID
-	model, err := s.repo.GetByID(ctx, tenantID, modelId)
+	model, err := s.GetUsableModel(types.WithExecutionTenant(ctx, tenantID), modelId)
 	if err != nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{
 			"model_id":  modelId,
@@ -653,7 +700,7 @@ func (s *modelService) GetEmbeddingModelForTenant(ctx context.Context, modelId s
 
 	logger.Infof(ctx, "Getting cross-tenant embedding model: %s, source: %s, tenant: %d", model.Name, model.Source, tenantID)
 
-	appID, appSecret := s.resolveWeKnoraCloudCredentials(ctx, &model.Parameters)
+	appID, appSecret := s.resolveWeKnoraCloudCredentials(modelCredentialsContext(types.WithExecutionTenant(ctx, tenantID), model), &model.Parameters)
 
 	embedder, err := embedding.NewEmbedder(embedding.ConfigFromModel(model, appID, appSecret), s.pooler, s.ollamaService)
 	if err != nil {
@@ -673,7 +720,7 @@ func (s *modelService) GetEmbeddingModelForTenant(ctx context.Context, modelId s
 // Takes a model ID and returns a Reranker interface implementation
 func (s *modelService) GetRerankModel(ctx context.Context, modelId string) (rerank.Reranker, error) {
 	// Get the model details
-	model, err := s.GetModelByID(ctx, modelId)
+	model, err := s.GetUsableModel(ctx, modelId)
 	if err != nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{
 			"model_id": modelId,
@@ -683,7 +730,7 @@ func (s *modelService) GetRerankModel(ctx context.Context, modelId string) (rera
 
 	logger.Infof(ctx, "Getting rerank model: %s, source: %s", model.Name, model.Source)
 
-	appID, appSecret := s.resolveWeKnoraCloudCredentials(ctx, &model.Parameters)
+	appID, appSecret := s.resolveWeKnoraCloudCredentials(modelCredentialsContext(ctx, model), &model.Parameters)
 
 	reranker, err := rerank.NewReranker(rerank.ConfigFromModel(model, appID, appSecret))
 	if err != nil {
@@ -715,8 +762,8 @@ func (s *modelService) GetChatModelSnapshot(ctx context.Context, modelId string)
 
 	tenantID := types.MustTenantIDFromContext(ctx)
 
-	// Get the model directly from repository to avoid status checks
-	model, err := s.repo.GetByID(ctx, tenantID, modelId)
+	// Resolve the current user or authorized resource binding before snapshotting.
+	model, err := s.GetUsableModel(types.WithExecutionTenant(ctx, tenantID), modelId)
 	if err != nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{
 			"model_id":  modelId,
@@ -732,7 +779,7 @@ func (s *modelService) GetChatModelSnapshot(ctx context.Context, modelId string)
 
 	logger.Infof(ctx, "Getting chat model: %s, source: %s", model.Name, model.Source)
 
-	appID, appSecret := s.resolveWeKnoraCloudCredentials(ctx, &model.Parameters)
+	appID, appSecret := s.resolveWeKnoraCloudCredentials(modelCredentialsContext(ctx, model), &model.Parameters)
 
 	chatModel, err := chat.NewChat(chat.ConfigFromModel(model, appID, appSecret), s.ollamaService)
 	if err != nil {
@@ -754,7 +801,7 @@ func (s *modelService) GetVLMModel(ctx context.Context, modelId string) (vlm.VLM
 
 	tenantID := types.MustTenantIDFromContext(ctx)
 
-	model, err := s.repo.GetByID(ctx, tenantID, modelId)
+	model, err := s.GetUsableModel(types.WithExecutionTenant(ctx, tenantID), modelId)
 	if err != nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{
 			"model_id":  modelId,
@@ -769,7 +816,7 @@ func (s *modelService) GetVLMModel(ctx context.Context, modelId string) (vlm.VLM
 
 	logger.Infof(ctx, "Getting VLM model: %s, source: %s", model.Name, model.Source)
 
-	appID, appSecret := s.resolveWeKnoraCloudCredentials(ctx, &model.Parameters)
+	appID, appSecret := s.resolveWeKnoraCloudCredentials(modelCredentialsContext(ctx, model), &model.Parameters)
 
 	vlmModel, err := vlm.NewVLM(vlm.ConfigFromModel(model, appID, appSecret), s.ollamaService)
 	if err != nil {
@@ -791,7 +838,7 @@ func (s *modelService) GetASRModel(ctx context.Context, modelId string) (asr.ASR
 
 	tenantID := types.MustTenantIDFromContext(ctx)
 
-	model, err := s.repo.GetByID(ctx, tenantID, modelId)
+	model, err := s.GetUsableModel(types.WithExecutionTenant(ctx, tenantID), modelId)
 	if err != nil {
 		logger.ErrorWithFields(ctx, err, map[string]interface{}{
 			"model_id":  modelId,
@@ -834,4 +881,97 @@ func formatModelInUseMessage(kbCount, agentCount int64, memory bool) string {
 		"model is used by %s; reconfigure or remove those references before deleting",
 		joined,
 	)
+}
+
+// GetUsableModel resolves execution and selection rights independently of CRUD.
+// A resource grant covers only its persisted model IDs, never the owner's catalog.
+func (s *modelService) GetUsableModel(ctx context.Context, id string) (*types.Model, error) {
+	if strings.TrimSpace(id) == "" {
+		return nil, ErrModelNotFound
+	}
+	tenantID := types.MustTenantIDFromContext(ctx)
+	model, err := s.repo.GetByID(ctx, tenantID, id)
+	if err != nil {
+		return nil, err
+	}
+	caller := types.CallerFromContext(ctx)
+	scopeChanged := caller.TenantID != 0 && caller.TenantID != tenantID
+	if model != nil && !model.IsBuiltin && scopeChanged && !types.HasModelBinding(ctx, id) {
+		model = nil
+	}
+	if model == nil && s.catalog != nil {
+		if types.HasModelBinding(ctx, id) {
+			model, err = s.catalog.GetBoundModel(ctx, id)
+		} else {
+			bound, checkErr := false, error(nil)
+			if !scopeChanged {
+				bound, checkErr = s.isBusinessModelBinding(ctx, id)
+			}
+			if checkErr != nil {
+				return nil, checkErr
+			}
+			if bound {
+				model, err = s.catalog.GetBoundModel(types.WithModelBindings(ctx, id), id)
+			} else if types.CallerFromContext(ctx).UserID != "" {
+				model, err = s.catalog.GetAvailableModel(ctx, id)
+			}
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	if model == nil {
+		return nil, ErrModelNotFound
+	}
+	if model.Status != types.ModelStatusActive {
+		return nil, apperrors.NewBadRequestError("模型不可用")
+	}
+	return model, nil
+}
+
+func modelSlotIDs(settings *types.DefaultSettings) []string {
+	ids := make([]string, 0)
+	for _, id := range settings.ModelSlots() {
+		ids = append(ids, id)
+	}
+	return ids
+}
+
+func (s *modelService) isBusinessModelBinding(ctx context.Context, id string) (bool, error) {
+	if s.tenantService == nil {
+		return false, nil
+	}
+	tenant, err := s.tenantService.GetTenantByID(ctx, types.MustTenantIDFromContext(ctx))
+	if err != nil {
+		return false, err
+	}
+	if tenant == nil {
+		return false, nil
+	}
+	if tenant.DefaultSettings != nil {
+		for _, modelID := range append([]string{tenant.DefaultSettings.UtilityModelID}, modelSlotIDs(tenant.DefaultSettings)...) {
+			if id == modelID {
+				return true, nil
+			}
+		}
+	}
+	if tenant.MemoryConfig != nil && (id == tenant.MemoryConfig.EmbeddingModelID || id == tenant.MemoryConfig.ExtractModelID) {
+		return true, nil
+	}
+	if tenant.RetrievalConfig != nil && id == tenant.RetrievalConfig.RerankModelID {
+		return true, nil
+	}
+	if tenant.ChatHistoryConfig != nil && id == tenant.ChatHistoryConfig.EmbeddingModelID {
+		return true, nil
+	}
+	return false, nil
+}
+
+// Shared builtins use the business invocation credentials; privately configured
+// models retain their source credentials when selected by another application.
+func modelCredentialsContext(ctx context.Context, model *types.Model) context.Context {
+	if model.IsBuiltin {
+		return ctx
+	}
+	return types.WithExecutionTenant(ctx, model.TenantID)
 }

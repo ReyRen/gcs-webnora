@@ -179,3 +179,5 @@ func TestInvalidQuestionModelMarksAsyncTraceFailed(t *testing.T) {
 		})
 	}
 }
+
+func (s *questionSelectionModels) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

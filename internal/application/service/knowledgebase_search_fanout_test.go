@@ -1042,3 +1042,5 @@ func TestApplyFAQPostProcessing_TriggerJudgesEachList(t *testing.T) {
 	_, err = s.applyFAQPostProcessing(ctx, kb, []*types.KnowledgeBase{kb}, chunks, full, groups, params, 5)
 	require.Error(t, err, "a full list must trigger the iterative path")
 }
+
+func (s *fakeModelSvcForKeys) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

@@ -21,7 +21,7 @@ func ValidateQuestionGenerationModel(
 	if models == nil {
 		return "", werrors.NewBadRequestError("question model service is unavailable")
 	}
-	model, err := models.GetModelByID(ctx, id)
+	model, err := models.GetUsableModel(ctx, id)
 	if err != nil || model == nil || model.Type != types.ModelTypeKnowledgeQA ||
 		model.Status != types.ModelStatusActive {
 		return "", werrors.NewBadRequestError("question model must be an active chat model in this workspace")

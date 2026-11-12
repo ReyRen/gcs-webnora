@@ -99,6 +99,7 @@ func (s *sessionService) AgentQA(
 
 	// Ensure defaults are set
 	req.CustomAgent.EnsureDefaults()
+	ctx = types.WithAgentModels(ctx, req.CustomAgent)
 
 	// Build AgentConfig from custom agent and tenant info
 	agentConfig, err := s.buildAgentConfig(ctx, req, tenantInfo, agentTenantID)
@@ -141,7 +142,7 @@ func (s *sessionService) AgentQA(
 		return errors.New("summary model (model_id) is not configured in custom agent settings")
 	}
 
-	modelCtx := types.WithExecutionTenant(ctx, modelTenantID)
+	modelCtx := types.WithModelBindings(types.WithExecutionTenant(ctx, modelTenantID), effectiveModelID)
 	summaryModel, err := s.modelService.GetChatModel(modelCtx, effectiveModelID)
 	if err != nil {
 		logger.Warnf(ctx, "Failed to get chat model: %v", err)
@@ -155,7 +156,7 @@ func (s *sessionService) AgentQA(
 	var agentModelSupportsVision bool
 	modelContextWindow := 0
 	if effectiveModelID != "" {
-		if modelInfo, err := s.modelService.GetModelByID(modelCtx, effectiveModelID); err == nil && modelInfo != nil {
+		if modelInfo, err := s.modelService.GetUsableModel(modelCtx, effectiveModelID); err == nil && modelInfo != nil {
 			agentModelSupportsVision = modelInfo.Parameters.SupportsVision
 			modelContextWindow = modelInfo.Parameters.ContextWindow
 			agentConfig.ModelMaxOutputTokens = modelMaxOutputTokens(modelInfo)

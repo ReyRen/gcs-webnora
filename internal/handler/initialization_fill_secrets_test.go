@@ -144,3 +144,5 @@ func TestFillSecretsFromStoredModel_ModelNotFoundNoop(t *testing.T) {
 		t.Fatalf("ExtraConfig changed on model lookup failure: %v", req.ExtraConfig)
 	}
 }
+
+func (s *stubFillSecretsModelService) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

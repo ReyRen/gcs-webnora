@@ -96,8 +96,8 @@ func (s *sessionService) KnowledgeQA(
 	var chatModelSupportsVision bool
 	var vlmModelID string
 	if chatModelID != "" {
-		modelCtx := types.WithExecutionTenant(ctx, chatModelTenantID)
-		chatModelInfo, err := s.modelService.GetModelByID(modelCtx, chatModelID)
+		modelCtx := types.WithModelBindings(types.WithExecutionTenant(ctx, chatModelTenantID), chatModelID)
+		chatModelInfo, err := s.modelService.GetUsableModel(modelCtx, chatModelID)
 		if err == nil && chatModelInfo != nil {
 			chatModelSupportsVision = chatModelInfo.Parameters.SupportsVision
 		}
@@ -310,8 +310,8 @@ func (s *sessionService) selectChatModelID(
 		if kb.SummaryModelID == "" {
 			continue
 		}
-		modelCtx := types.WithExecutionTenant(ctx, kb.TenantID)
-		model, err := s.modelService.GetModelByID(modelCtx, kb.SummaryModelID)
+		modelCtx := types.WithKnowledgeBaseModels(types.WithExecutionTenant(ctx, kb.TenantID), kb)
+		model, err := s.modelService.GetUsableModel(modelCtx, kb.SummaryModelID)
 		if err == nil && model != nil && model.Source == types.ModelSourceRemote {
 			return kb.SummaryModelID, kb.TenantID, nil
 		}

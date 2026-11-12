@@ -3533,3 +3533,5 @@ func (f *installFixture) currentInstallMessageID() string {
 	}
 	return row.InstallMessageID
 }
+
+func (s *installModelService) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

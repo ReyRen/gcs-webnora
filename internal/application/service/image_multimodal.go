@@ -745,7 +745,7 @@ func (s *ImageMultimodalService) indexChunks(
 		return
 	}
 
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	if err != nil {
 		logger.Warnf(ctx, "[ImageMultimodal] Failed to get embedding model for indexing: %v", err)
 		return
@@ -948,7 +948,7 @@ func (s *ImageMultimodalService) resolveVLM(ctx context.Context, kbID, knowledge
 
 	// New-style: resolve model through ModelService
 	if vlmCfg.ModelID != "" {
-		model, err := s.modelService.GetVLMModel(ctx, vlmCfg.ModelID)
+		model, err := s.modelService.GetVLMModel(types.WithKnowledgeBaseModels(ctx, kb), vlmCfg.ModelID)
 		if err == nil {
 			return model, vlmCfg, nil
 		}
@@ -963,7 +963,7 @@ func (s *ImageMultimodalService) resolveVLM(ctx context.Context, kbID, knowledge
 				"[ImageMultimodal] Failed to resolve document VLM model %s: %v;"+
 					" falling back to knowledge base VLM model %s",
 				vlmCfg.ModelID, err, kbVLMConfig.ModelID)
-			fallbackModel, fallbackErr := s.modelService.GetVLMModel(ctx, kbVLMConfig.ModelID)
+			fallbackModel, fallbackErr := s.modelService.GetVLMModel(types.WithKnowledgeBaseModels(ctx, kb), kbVLMConfig.ModelID)
 			if fallbackErr != nil {
 				logger.Warnf(ctx,
 					"[ImageMultimodal] Failed to resolve knowledge base fallback VLM model %s: %v",

@@ -174,7 +174,7 @@ func (s *knowledgeService) getVLMConfig(ctx context.Context, kb *types.Knowledge
 		return nil, nil
 	}
 
-	model, err := s.modelService.GetModelByID(ctx, kb.VLMConfig.ModelID)
+	model, err := s.modelService.GetUsableModel(types.WithKnowledgeBaseModels(ctx, kb), kb.VLMConfig.ModelID)
 	if err != nil {
 		return nil, err
 	}

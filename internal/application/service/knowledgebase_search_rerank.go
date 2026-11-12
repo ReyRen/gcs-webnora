@@ -27,7 +27,7 @@ func resolveRerankModelID(
 	rc *types.RetrievalConfig,
 ) (string, string, error) {
 	if requested != "" {
-		model, err := modelService.GetModelByID(ctx, requested)
+		model, err := modelService.GetUsableModel(ctx, requested)
 		if err != nil || model == nil {
 			return "", "", apperrors.NewBadRequestError(
 				fmt.Sprintf("rerank model %q not found or not active", requested))

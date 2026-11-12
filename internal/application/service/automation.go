@@ -400,7 +400,7 @@ func (s *AutomationService) validateModel(ctx context.Context, id string, tenant
 	if s.models == nil {
 		return errors.New("model service is unavailable")
 	}
-	model, err := s.models.GetModelByID(ctx, id)
+	model, err := s.models.GetUsableModel(ctx, id)
 	if err != nil || model == nil || model.DeletedAt.Valid ||
 		(!model.IsBuiltin && model.TenantID != tenantID) ||
 		model.Type != types.ModelTypeKnowledgeQA || model.Status != types.ModelStatusActive {

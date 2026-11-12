@@ -30,13 +30,16 @@ func (s *knowledgeBaseService) GetQueryEmbedding(ctx context.Context, kbID strin
 		return nil, err
 	}
 
+	if _, err := resolveKBReadTenant(ctx, kb, s.kbShareService); err != nil {
+		return nil, err
+	}
 	currentTenantID := types.MustTenantIDFromContext(ctx)
 	var embeddingModel embedding.Embedder
 
 	if kb.TenantID != currentTenantID {
-		embeddingModel, err = s.modelService.GetEmbeddingModelForTenant(ctx, kb.EmbeddingModelID, kb.TenantID)
+		embeddingModel, err = s.modelService.GetEmbeddingModelForTenant(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID, kb.TenantID)
 	} else {
-		embeddingModel, err = s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+		embeddingModel, err = s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	}
 	if err != nil {
 		logger.Errorf(ctx, "GetQueryEmbedding: failed to get embedding model %s: %v", kb.EmbeddingModelID, err)
@@ -69,11 +72,14 @@ func (s *knowledgeBaseService) GetQueryImageEmbedding(
 	if err != nil {
 		return nil, err
 	}
+	if _, err := resolveKBReadTenant(ctx, kb, s.kbShareService); err != nil {
+		return nil, err
+	}
 	var embeddingModel embedding.Embedder
 	if kb.TenantID != types.MustTenantIDFromContext(ctx) {
-		embeddingModel, err = s.modelService.GetEmbeddingModelForTenant(ctx, kb.EmbeddingModelID, kb.TenantID)
+		embeddingModel, err = s.modelService.GetEmbeddingModelForTenant(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID, kb.TenantID)
 	} else {
-		embeddingModel, err = s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+		embeddingModel, err = s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	}
 	if err != nil {
 		logger.Errorf(ctx, "GetQueryImageEmbedding: failed to get embedding model %s: %v", kb.EmbeddingModelID, err)
@@ -154,8 +160,8 @@ func (s *knowledgeBaseService) ResolveEmbeddingModelKeys(ctx context.Context, kb
 	// support multiple output widths for one model name and endpoint.
 	resolvedKeys := make(map[modelRef]string, len(uniqueRefs))
 	for ref := range uniqueRefs {
-		tenantCtx := types.WithExecutionTenant(ctx, ref.TenantID)
-		model, err := s.modelService.GetModelByID(tenantCtx, ref.ModelID)
+		tenantCtx := types.WithModelBindings(types.WithExecutionTenant(ctx, ref.TenantID), ref.ModelID)
+		model, err := s.modelService.GetUsableModel(tenantCtx, ref.ModelID)
 		if err != nil || model == nil {
 			logger.Warnf(ctx, "ResolveEmbeddingModelKeys: cannot resolve model %s for tenant %d: %v", ref.ModelID, ref.TenantID, err)
 			resolvedKeys[ref] = ref.ModelID
@@ -621,9 +627,9 @@ func (s *knowledgeBaseService) resolveQueryEmbedding(
 	var err error
 	if kb.TenantID != currentTenantID {
 		logger.Infof(ctx, "Cross-tenant knowledge base detected, using source tenant's embedding model. KB tenant: %d, current tenant: %d", kb.TenantID, currentTenantID)
-		embeddingModel, err = s.modelService.GetEmbeddingModelForTenant(ctx, kb.EmbeddingModelID, kb.TenantID)
+		embeddingModel, err = s.modelService.GetEmbeddingModelForTenant(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID, kb.TenantID)
 	} else {
-		embeddingModel, err = s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+		embeddingModel, err = s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	}
 	if err != nil {
 		logger.Errorf(ctx, "Failed to get embedding model, model ID: %s, error: %v", kb.EmbeddingModelID, err)

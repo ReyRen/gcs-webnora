@@ -31,6 +31,9 @@ func knowledgeBaseModelUsageBindings(kb *types.KnowledgeBase, modelID string) []
 	if kb.AutoTagConfig != nil && kb.AutoTagConfig.ModelID == modelID {
 		bindings = append(bindings, types.ModelUsageBindingAutoTagModel)
 	}
+	if kb.ProfileConfig != nil && kb.ProfileConfig.ModelID == modelID {
+		bindings = append(bindings, types.ModelUsageBindingProfileModel)
+	}
 	return bindings
 }
 
@@ -69,8 +72,8 @@ func scopeKnowledgeBasesByModelID(db *gorm.DB, modelID string) *gorm.DB {
 				"asr_config->>'model_id' = ? OR "+
 				"wiki_config->>'synthesis_model_id' = ? OR "+
 				"auto_tag_config->>'model_id' = ? OR "+
-				"question_generation_config->>'model_id' = ?",
-			modelID, modelID, modelID, modelID, modelID, modelID, modelID, modelID,
+				"question_generation_config->>'model_id' = ? OR profile_config->>'model_id' = ?",
+			modelID, modelID, modelID, modelID, modelID, modelID, modelID, modelID, modelID,
 		)
 	}
 	return db.Where(
@@ -80,8 +83,8 @@ func scopeKnowledgeBasesByModelID(db *gorm.DB, modelID string) *gorm.DB {
 			"json_extract(asr_config, '$.model_id') = ? OR "+
 			"json_extract(wiki_config, '$.synthesis_model_id') = ? OR "+
 			"json_extract(auto_tag_config, '$.model_id') = ? OR "+
-			"json_extract(question_generation_config, '$.model_id') = ?",
-		modelID, modelID, modelID, modelID, modelID, modelID, modelID, modelID,
+			"json_extract(question_generation_config, '$.model_id') = ? OR json_extract(profile_config, '$.model_id') = ?",
+		modelID, modelID, modelID, modelID, modelID, modelID, modelID, modelID, modelID,
 	)
 }
 

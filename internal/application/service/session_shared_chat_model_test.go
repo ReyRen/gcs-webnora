@@ -205,3 +205,5 @@ func TestSharedKBRemoteModelPriority(t *testing.T) {
 	require.Equal(t, "owner-model", id)
 	require.Equal(t, uint64(1), tenant)
 }
+
+func (s *sharedChatModels) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

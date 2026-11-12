@@ -28,6 +28,8 @@ func RegisterModelRoutes(
 		models.POST("/catalog/resolve", g.Viewer(), handler.ResolveModelCatalog)
 		// 创建模型 — Admin+
 		models.POST("", g.Admin(), handler.CreateModel)
+		// 当前用户完整可用模型目录。API Key 不能跨越其授权空间。
+		models.GET("/available", g.Viewer(), handler.ListAvailableModels)
 		// 获取模型列表 — Viewer+
 		models.GET("", g.Viewer(), handler.ListModels)
 		// Interactive inference uses the same workspace authorization as reads.

@@ -65,7 +65,7 @@ func TestUpdateModelPreservesOmittedIdentity(t *testing.T) {
 			}}
 			router := gin.New()
 			router.Use(middleware.ErrorHandler())
-			router.PUT("/api/v1/models/:id", NewModelHandler(stub).UpdateModel)
+			router.PUT("/api/v1/models/:id", NewModelHandler(stub, nil, nil, nil).UpdateModel)
 
 			// The CLI uses this SDK request, which has no source or type fields.
 			body := []byte(`{

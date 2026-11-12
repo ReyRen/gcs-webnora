@@ -43,7 +43,7 @@ func TestCopyModelResponseOmitsCredentials(t *testing.T) {
 			},
 		},
 	}
-	h := NewModelHandler(stub)
+	h := NewModelHandler(stub, nil, nil, nil)
 	router := gin.New()
 	router.POST("/models/:id/copy", func(c *gin.Context) {
 		c.Set(types.TenantIDContextKey.String(), uint64(7))

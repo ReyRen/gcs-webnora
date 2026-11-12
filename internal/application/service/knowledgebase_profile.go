@@ -313,7 +313,7 @@ func (s *KnowledgeBaseProfileService) GenerateKnowledgeBaseProfile(
 	if modelID == "" {
 		return s.persistFailure(ctx, kb, agg, ErrKnowledgeBaseProfileModelNotConfigured)
 	}
-	chatModel, err := s.modelService.GetChatModel(ctx, modelID)
+	chatModel, err := s.modelService.GetChatModel(types.WithKnowledgeBaseModels(ctx, kb), modelID)
 	if err != nil {
 		return s.persistFailure(ctx, kb, agg, fmt.Errorf("get chat model %s: %w", modelID, err))
 	}

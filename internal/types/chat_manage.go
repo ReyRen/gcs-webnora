@@ -105,7 +105,7 @@ func (c *PipelineRequest) ChatModelContext(ctx context.Context) context.Context 
 	if c.ChatModelTenantID == 0 {
 		return ctx
 	}
-	return WithExecutionTenant(ctx, c.ChatModelTenantID)
+	return WithModelBindings(WithExecutionTenant(ctx, c.ChatModelTenantID), c.ChatModelID)
 }
 
 // CitationsEnabled returns the effective citation setting for this request.
