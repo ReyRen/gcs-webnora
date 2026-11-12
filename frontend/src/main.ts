@@ -20,6 +20,8 @@ import { initFont } from "@/composables/useFont";
 import { installTDesignIconOfflineGuard } from "@/utils/tdesign-icon-offline";
 import { installAutofillGuard } from "@/utils/disable-autofill";
 import { useAuthStore } from "@/stores/auth";
+import { restoreBootstrapSession } from "@/utils/authBootstrap";
+import { getApiBaseUrl } from "@/utils/api-base";
 
 // 必须在 Vue 组件挂载之前执行，避免 tdesign-icons 运行时请求 tdesign.gtimg.com
 installTDesignIconOfflineGuard();
@@ -42,12 +44,15 @@ async function bootstrap() {
   // Capabilities (can_create_tenant, auto_accept_invitation) are not cached
   // in localStorage — reconcile once before first paint when a session exists.
   const authStore = useAuthStore();
-  if (localStorage.getItem("weknora_token")) {
-    try {
-      await authStore.refreshFromAuthMe();
-    } catch {
-      // best-effort; capabilities stay at defaults until the next refresh
-    }
+  try {
+    await restoreBootstrapSession({
+      pathname: window.location.pathname,
+      basePath: getApiBaseUrl(),
+      hasToken: !!localStorage.getItem("weknora_token"),
+      restore: () => authStore.refreshFromAuthMe(),
+    });
+  } catch {
+    // Capabilities stay at defaults until an authenticated refresh succeeds.
   }
 
   app.use(router);
