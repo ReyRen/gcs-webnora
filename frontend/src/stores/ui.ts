@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia'
 import { clampSidebarWidth, SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_COLLAPSE_THRESHOLD } from '../utils/sidebarWidth'
+import { KNOWLEDGE_WORKSPACE, isHarnessModelSetting } from '@/config/knowledgeWorkspace'
+import { openHarnessModelSettings } from '@/utils/harnessModelSettings'
+import { MessagePlugin } from 'tdesign-vue-next'
+import i18n from '@/i18n'
 
 export const useUIStore = defineStore('ui', {
   state: () => ({
@@ -35,6 +39,10 @@ export const useUIStore = defineStore('ui', {
 
   actions: {
     openSettings(section?: string, subSection?: string) {
+      if (KNOWLEDGE_WORKSPACE && section && isHarnessModelSetting(section)) {
+        void openHarnessModelSettings().catch(() => MessagePlugin.error(i18n.global.t('model.harnessSettingsUnavailable')))
+        return
+      }
       this.settingsInitialSection = section || null
       this.settingsInitialSubSection = subSection || null
       this.showSettingsModal = true

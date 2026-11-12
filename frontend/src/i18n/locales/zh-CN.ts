@@ -4260,6 +4260,8 @@ export default {
     },
     modelName: '模型名称',
     defaultTag: '默认',
+    harnessSettings: '在 Harness 中管理模型',
+    harnessSettingsUnavailable: '请在 Harness 设置中管理模型',
     addModelInSettings: '前往全局设置添加模型',
     loadFailed: '加载模型列表失败',
     selectModelPlaceholder: '请选择模型',
@@ -5583,7 +5585,7 @@ export default {
       }
     },
     models: {
-      title: '模型配置',
+      title: '模型选择',
       description: '为知识库选择合适的 AI 模型',
       llmLabel: 'LLM 大语言模型',
       llmDesc: '用于总结和摘要的大语言模型',
@@ -6082,7 +6084,7 @@ export default {
     },
     sidebar: {
       basic: '基本信息',
-      models: '模型配置',
+      models: '模型选择',
       vectorStore: '向量存储',
       chunking: '分块设置',
       storage: '存储引擎',

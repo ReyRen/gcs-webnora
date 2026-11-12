@@ -3847,7 +3847,7 @@ export default {
     },
     sidebar: {
       basic: '基本情報',
-      models: 'モデル設定',
+      models: 'モデル選択',
       vectorStore: 'ベクトルストア',
       chunking: 'チャンク設定',
       storage: 'ストレージエンジン',
@@ -4346,7 +4346,7 @@ export default {
       exportFailed: 'エクスポートに失敗しました'
     },
     models: {
-      title: 'モデル設定',
+      title: 'モデル選択',
       description: 'ナレッジベースに適したAIモデルを選択します',
       llmLabel: 'LLMモデル',
       llmDesc: '要約や概要の生成に使用する大規模言語モデル（任意）',
@@ -5553,6 +5553,8 @@ export default {
       },
       modelName: 'モデル名',
       defaultTag: 'デフォルト',
+      harnessSettings: 'Manage models in Harness',
+      harnessSettingsUnavailable: 'Open Harness settings to manage models',
       addModelInSettings: 'モデルを追加するにはシステム設定を開いてください',
       loadFailed: 'モデル一覧の読み込みに失敗しました',
       selectModelPlaceholder: 'モデルを選択',

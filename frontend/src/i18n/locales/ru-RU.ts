@@ -4258,6 +4258,8 @@ export default {
     },
     modelName: 'Название модели',
     defaultTag: 'По умолчанию',
+    harnessSettings: 'Manage models in Harness',
+    harnessSettingsUnavailable: 'Open Harness settings to manage models',
     addModelInSettings: 'Перейти в общие настройки для добавления моделей',
     loadFailed: 'Не удалось загрузить список моделей',
     selectModelPlaceholder: 'Выберите модель',
@@ -5582,7 +5584,7 @@ export default {
       }
     },
     models: {
-      title: 'Конфигурация моделей',
+      title: 'Выбор моделей',
       description: 'Выберите подходящие AI-модели для базы знаний',
       llmLabel: 'LLM модель',
       llmDesc: 'Большая языковая модель для диалогов и вопросов-ответов',
@@ -6081,7 +6083,7 @@ export default {
     },
     sidebar: {
       basic: 'Основная информация',
-      models: 'Конфигурация моделей',
+      models: 'Выбор моделей',
       vectorStore: 'Vector Store',
       chunking: 'Настройки разбиения',
       storage: 'Storage Engine',

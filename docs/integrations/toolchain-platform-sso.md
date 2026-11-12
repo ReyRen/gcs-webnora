@@ -3,6 +3,8 @@
 主平台在 `https://172.18.127.67` 登录注册后，通过导航中的 iframe 打开 WeKnora。
 本项目实现专用 SSO 适配和 iframe 握手；`model/master` 仅用于核对现有封装，没有修改该仓库。
 
+知识库工作台构建的模型管理统一由 Harness 原生“设置 → 模型设置”承接，不再提供模型、Ollama 或模型目录的重复管理页。知识库、智能体及任务仍按原有逻辑从同一空间可用模型中选择对话、嵌入等模型；不删除模型记录，也不改变已有索引绑定。模型选择器的管理操作向配置允许的 Harness 父窗口发送 `weknora:open-model-settings`，Harness 的 `weknora:models-updated` 通知经过窗口和来源校验后刷新模型缓存。`VITE_KNOWLEDGE_WORKSPACE=false` 的独立构建保留原管理入口。
+
 ## 认证流程
 
 1. 主平台加载 `/weknora/sso/platform`。入口会清理之前账号的本地登录态。
