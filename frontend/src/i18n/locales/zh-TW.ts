@@ -3835,6 +3835,7 @@ export default {
         asr_model: '語音辨識模型',
         wiki_synthesis_model: 'Wiki 綜合模型',
         auto_tag_model: '自動標籤模型',
+        profile_model: '知識庫描述模型',
         chat_model: '對話模型',
         rerank_model: '重排序模型',
         query_understand_model: '問題理解模型',

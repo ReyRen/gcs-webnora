@@ -70,7 +70,7 @@ func harnessRequest(t *testing.T, svc *harnessModelService, tenant uint64, revis
 	router.Use(middleware.ErrorHandler(), func(c *gin.Context) {
 		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), types.TenantIDContextKey, tenant))
 	})
-	router.POST("/models/:id/harness-chat", NewModelHandler(svc).ChatHarnessModel)
+	router.POST("/models/:id/harness-chat", NewModelHandler(svc, nil, nil, nil).ChatHarnessModel)
 	body, err := json.Marshal(HarnessModelRequest{
 		ModelRevision: revision,
 		Messages: []api.Message{
@@ -151,7 +151,7 @@ func TestHarnessModelLiveStream(t *testing.T) {
 	router.Use(middleware.ErrorHandler(), func(c *gin.Context) {
 		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), types.TenantIDContextKey, uint64(10)))
 	})
-	router.POST("/models/:id/harness-chat", NewModelHandler(svc).ChatHarnessModel)
+	router.POST("/models/:id/harness-chat", NewModelHandler(svc, nil, nil, nil).ChatHarnessModel)
 	body, err := json.Marshal(HarnessModelRequest{ModelRevision: model.UpdatedAt,
 		Messages: []api.Message{{Role: "user", Content: "Reply exactly MODEL_LIVE_OK, without explanation."}},
 		Options:  api.Options{MaxTokens: 64, ReasoningEffort: api.ReasoningOff}})

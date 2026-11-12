@@ -288,3 +288,5 @@ func TestUpdateKnowledgeBaseMixedVLMKeepsManagedModel(t *testing.T) {
 	assert.Empty(t, kb.VLMConfig.ModelName)
 	assert.Empty(t, kb.VLMConfig.BaseURL)
 }
+
+func (s *vlmUpdateModelService) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

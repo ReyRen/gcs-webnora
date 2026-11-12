@@ -450,7 +450,7 @@ func (s *knowledgeService) processChunks(ctx context.Context,
 	var embeddingModel embedding.Embedder
 	if kb.NeedsEmbeddingModel() {
 		var err error
-		embeddingModel, err = s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+		embeddingModel, err = s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 		if err != nil {
 			// Terminal for this attempt, and it has to be recorded as such.
 			// A KB that indexes vectors cannot proceed without an embedder;
@@ -1668,7 +1668,7 @@ func (s *knowledgeService) ProcessSummaryGeneration(ctx context.Context, t *asyn
 
 	// Initialize chat model for summary. Model resolution failures use the same
 	// retry budget and terminal first-chunk fallback as LLM request failures.
-	chatModel, err := s.modelService.GetChatModel(ctx, kb.SummaryModelID)
+	chatModel, err := s.modelService.GetChatModel(types.WithKnowledgeBaseModels(ctx, kb), kb.SummaryModelID)
 	if err != nil {
 		logger.Errorf(ctx, "Failed to get chat model: %v", err)
 		return handleRetryableSummaryFailure(fmt.Errorf("get chat model: %w", err))
@@ -1797,7 +1797,7 @@ func (s *knowledgeService) ProcessSummaryGeneration(ctx context.Context, t *asyn
 			return fmt.Errorf("failed to init retrieve engine: %w", err)
 		}
 
-		embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+		embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 		if err != nil {
 			logger.Errorf(ctx, "Failed to get embedding model: %v", err)
 			summaryErr = err
@@ -2078,7 +2078,7 @@ func (s *knowledgeService) processQuestionGenerationForKnowledge(ctx context.Con
 		qErr = err
 		return err
 	}
-	chatModel, err := s.modelService.GetChatModel(ctx, questionModelID)
+	chatModel, err := s.modelService.GetChatModel(types.WithKnowledgeBaseModels(ctx, kb), questionModelID)
 	if err != nil {
 		exitStatus = "get_chat_model_failed"
 		logger.Errorf(ctx, "Failed to get chat model: %v", err)
@@ -2087,7 +2087,7 @@ func (s *knowledgeService) processQuestionGenerationForKnowledge(ctx context.Con
 	resolvedModelID = questionModelID
 
 	// Initialize embedding model and retrieval engine
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	if err != nil {
 		exitStatus = "get_embedding_model_failed"
 		logger.Errorf(ctx, "Failed to get embedding model: %v", err)
@@ -2408,7 +2408,7 @@ func (s *knowledgeService) processQuestionGenerationForChunks(ctx context.Contex
 		qErr = err
 		return err
 	}
-	chatModel, err := s.modelService.GetChatModel(ctx, questionModelID)
+	chatModel, err := s.modelService.GetChatModel(types.WithKnowledgeBaseModels(ctx, kb), questionModelID)
 	if err != nil {
 		exitStatus = "get_chat_model_failed"
 		logger.Errorf(ctx, "Failed to get chat model: %v", err)
@@ -2416,7 +2416,7 @@ func (s *knowledgeService) processQuestionGenerationForChunks(ctx context.Contex
 	}
 	resolvedModelID = questionModelID
 
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	if err != nil {
 		exitStatus = "get_embedding_model_failed"
 		logger.Errorf(ctx, "Failed to get embedding model: %v", err)
@@ -2751,7 +2751,7 @@ func (s *knowledgeService) RegenerateChunkQuestions(
 	if questionModelID == "" {
 		return nil, fmt.Errorf("a chat model is required for question generation")
 	}
-	chatModel, err := s.modelService.GetChatModel(ctx, questionModelID)
+	chatModel, err := s.modelService.GetChatModel(types.WithKnowledgeBaseModels(ctx, kb), questionModelID)
 	if err != nil {
 		return nil, err
 	}
@@ -2895,7 +2895,7 @@ func (s *knowledgeService) RegenerateKnowledgeSummary(
 		return knowledge, generationErr
 	}
 
-	chatModel, err := s.modelService.GetChatModel(ctx, kb.SummaryModelID)
+	chatModel, err := s.modelService.GetChatModel(types.WithKnowledgeBaseModels(ctx, kb), kb.SummaryModelID)
 	if err != nil {
 		return handleGenerationFailure(fmt.Errorf("get chat model: %w", err))
 	}
@@ -3429,7 +3429,7 @@ func (s *knowledgeService) updateChunkVector(ctx context.Context, kbID string, c
 	if !sourceKB.NeedsEmbeddingModel() {
 		return nil
 	}
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, sourceKB.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, sourceKB), sourceKB.EmbeddingModelID)
 	if err != nil {
 		return err
 	}
@@ -4146,7 +4146,7 @@ func (s *knowledgeService) ProcessDocument(ctx context.Context, t *asynq.Task) e
 		logger.Infof(ctx, "[ASR] Starting audio transcription for knowledge %s, audio size=%d bytes",
 			knowledge.ID, len(convertResult.AudioData))
 
-		asrModel, err := s.modelService.GetASRModel(ctx, eff.ASRConfig.ModelID)
+		asrModel, err := s.modelService.GetASRModel(types.WithKnowledgeBaseModels(ctx, kb), eff.ASRConfig.ModelID)
 		if err != nil {
 			logger.Errorf(ctx, "[ASR] Failed to get ASR model: %v", err)
 			knowledge.ParseStatus = "failed"

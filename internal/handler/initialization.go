@@ -275,6 +275,7 @@ func (h *InitializationHandler) UpdateKBConfig(c *gin.Context) {
 		return
 	}
 
+	ctx = types.WithKnowledgeBaseModels(ctx, kb)
 	questionModelID, err := h.resolveQuestionGenerationModel(
 		ctx, req.QuestionGeneration.ModelID, kb.QuestionGenerationConfig,
 	)
@@ -299,7 +300,7 @@ func (h *InitializationHandler) UpdateKBConfig(c *gin.Context) {
 	}
 
 	// 从数据库获取模型详情并验证
-	llmModel, err := h.modelService.GetModelByID(ctx, req.LLMModelID)
+	llmModel, err := h.modelService.GetUsableModel(ctx, req.LLMModelID)
 	if err != nil || llmModel == nil {
 		logger.Error(ctx, "LLM model not found")
 		c.Error(errors.NewBadRequestError("LLM模型不存在"))
@@ -308,7 +309,7 @@ func (h *InitializationHandler) UpdateKBConfig(c *gin.Context) {
 
 	// Embedding模型仅在需要时验证（RAG检索启用时）
 	if req.EmbeddingModelID != "" {
-		embeddingModel, err := h.modelService.GetModelByID(ctx, req.EmbeddingModelID)
+		embeddingModel, err := h.modelService.GetUsableModel(ctx, req.EmbeddingModelID)
 		if err != nil || embeddingModel == nil {
 			logger.Error(ctx, "Embedding model not found")
 			c.Error(errors.NewBadRequestError("Embedding模型不存在"))
@@ -353,7 +354,7 @@ func (h *InitializationHandler) UpdateKBConfig(c *gin.Context) {
 		}
 
 		if req.VLMConfig.ModelID != nil && kb.VLMConfig.Enabled && kb.VLMConfig.ModelID != "" {
-			model, err := h.modelService.GetModelByID(ctx, kb.VLMConfig.ModelID)
+			model, err := h.modelService.GetUsableModel(ctx, kb.VLMConfig.ModelID)
 			if err != nil || model == nil {
 				logger.Warn(ctx, "VLM model not found")
 				kb.VLMConfig.Enabled = false
@@ -381,7 +382,7 @@ func (h *InitializationHandler) UpdateKBConfig(c *gin.Context) {
 		}
 
 		if req.ASRConfig.ModelID != nil && kb.ASRConfig.Enabled && kb.ASRConfig.ModelID != "" {
-			model, err := h.modelService.GetModelByID(ctx, kb.ASRConfig.ModelID)
+			model, err := h.modelService.GetUsableModel(ctx, kb.ASRConfig.ModelID)
 			if err != nil || model == nil {
 				logger.Warn(ctx, "ASR model not found")
 				kb.ASRConfig.Enabled = false

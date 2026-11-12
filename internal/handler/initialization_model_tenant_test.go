@@ -113,3 +113,5 @@ func TestProcessInitializationModelsKeepsExistingModelTenant(t *testing.T) {
 		t.Fatal("existing model not returned by the reuse path")
 	}
 }
+
+func (s *stubTenantStampModelService) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

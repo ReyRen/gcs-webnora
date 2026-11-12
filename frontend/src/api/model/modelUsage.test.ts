@@ -139,3 +139,11 @@ test('maps agent bindings to the configuration section that owns them', () => {
   assert.equal(modelUsageAgentSection(['chat_model', 'vlm_model']), 'model')
   assert.equal(modelUsageAgentSection(['vlm_model', 'follow_up_model']), 'multimodal')
 })
+
+test('preserves cross-business reference counts without exposing inaccessible resource names', () => {
+  const details = parseModelUsageDetails({ knowledge_bases: [], agents: [], long_term_memory: { bindings: [] }, knowledge_base_total: 2, agent_total: 1 })
+  assert.ok(details)
+  assert.equal(details.knowledge_base_total, 2)
+  assert.deepEqual(details.knowledge_bases, [])
+  assert.equal(modelUsageBindingI18nKey('profile_model'), 'modelSettings.usage.bindings.profile_model')
+})

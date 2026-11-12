@@ -1900,7 +1900,7 @@ func (s *agentService) resolveAssistantPageContext(
 	info.Page, info.Section = page.Page, page.Section
 	tenantID := types.CallerFromContext(ctx).TenantID
 	if page.ModelID != "" && s.modelService != nil {
-		if m, err := s.modelService.GetModelByID(ctx, page.ModelID); err == nil && m != nil {
+		if m, err := s.modelService.GetUsableModel(ctx, page.ModelID); err == nil && m != nil {
 			name := m.DisplayName
 			if name == "" {
 				name = m.Name

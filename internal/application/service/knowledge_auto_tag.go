@@ -235,7 +235,7 @@ func (s *KnowledgeAutoTagService) Handle(ctx context.Context, task *asynq.Task) 
 		return skip("no_text_chunks", nil)
 	}
 
-	chatModel, err := s.modelService.GetChatModel(ctx, modelID)
+	chatModel, err := s.modelService.GetChatModel(types.WithKnowledgeBaseModels(ctx, kb), modelID)
 	if err != nil {
 		s.tracker().FailSpan(ctx, span, "AUTO_TAG_MODEL_LOAD_FAILED", err.Error(), err)
 		return fmt.Errorf("get auto tag model: %w", err)

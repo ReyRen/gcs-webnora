@@ -1399,7 +1399,7 @@ func (s *knowledgeService) executeFAQImport(ctx context.Context, taskID string, 
 	kb.EnsureDefaults()
 
 	// 获取embedding模型，用于后续清理索引
-	embeddingModel, err = s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+	embeddingModel, err = s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	if err != nil {
 		return fmt.Errorf("failed to get embedding model: %w", err)
 	}
@@ -2134,7 +2134,7 @@ func (s *knowledgeService) deleteFAQChunkVectors(ctx context.Context,
 	if len(chunks) == 0 {
 		return nil
 	}
-	embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+	embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	if err != nil {
 		return err
 	}
@@ -2445,7 +2445,7 @@ func (s *knowledgeService) ProcessFAQImport(ctx context.Context, t *asynq.Task) 
 		logger.Infof(ctx, "Deleted unindexed chunks: %d", len(chunksDeleted))
 
 		// 删除索引数据
-		embeddingModel, err := s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+		embeddingModel, err := s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 		if err == nil {
 			retrieveEngine, err := retriever.CreateRetrieveEngineForKB(
 				ctx, s.retrieveEngine, s.ownership, tenantInfo.ID, kb.VectorStoreID)

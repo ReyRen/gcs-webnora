@@ -81,9 +81,9 @@ func (s *knowledgeBaseService) embeddingTakesImages(ctx context.Context, kb *typ
 		err   error
 	)
 	if kb.TenantID != types.MustTenantIDFromContext(ctx) {
-		model, err = s.modelService.GetEmbeddingModelForTenant(ctx, kb.EmbeddingModelID, kb.TenantID)
+		model, err = s.modelService.GetEmbeddingModelForTenant(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID, kb.TenantID)
 	} else {
-		model, err = s.modelService.GetEmbeddingModel(ctx, kb.EmbeddingModelID)
+		model, err = s.modelService.GetEmbeddingModel(types.WithKnowledgeBaseModels(ctx, kb), kb.EmbeddingModelID)
 	}
 	if err != nil {
 		// The query embedding already resolved this model, so a failure here

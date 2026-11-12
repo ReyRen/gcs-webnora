@@ -3833,6 +3833,7 @@ export default {
         asr_model: 'Модель распознавания речи',
         wiki_synthesis_model: 'Модель синтеза Wiki',
         auto_tag_model: 'Модель автоматической разметки',
+        profile_model: 'Модель описания базы знаний',
         chat_model: 'Диалоговая модель',
         rerank_model: 'Модель реранжирования',
         query_understand_model: 'Модель понимания запроса',

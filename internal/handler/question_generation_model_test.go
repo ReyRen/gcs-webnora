@@ -111,3 +111,5 @@ func TestUpdateKnowledgeBaseQuestionModelPresence(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, merged.Config.QuestionGenerationConfig.ModelID)
 }
+
+func (s *questionConfigModels) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

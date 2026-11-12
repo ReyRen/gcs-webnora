@@ -85,7 +85,7 @@ func putModelAs(t *testing.T, provider string, extraConfig map[string]string) (*
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 	svc := &stubUpdateModelService{stored: storedSecretExtraModel()}
-	h := NewModelHandler(svc)
+	h := NewModelHandler(svc, nil, nil, nil)
 
 	body, err := json.Marshal(UpdateModelRequest{
 		Name:   "rerank-v1",
@@ -231,3 +231,5 @@ func TestFillSecretsFromStoredModel_SkipsSecretExtraOfAnotherVendor(t *testing.T
 	assert.NotContains(t, req.ExtraConfig, "secret_key")
 	assert.Equal(t, "AKID-public-id", req.APIKey, "the api_key still comes from the stored row")
 }
+
+func (s *stubUpdateModelService) GetUsableModel(ctx context.Context, id string) (*types.Model, error) { return s.GetModelByID(ctx, id) }

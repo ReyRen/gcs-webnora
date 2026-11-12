@@ -21,6 +21,9 @@ type ModelService interface {
 	CopyModel(ctx context.Context, sourceID, displayName string) (*types.Model, error)
 	// GetModelByID gets a model by ID
 	GetModelByID(ctx context.Context, id string) (*types.Model, error)
+	// GetUsableModel resolves an active model from the current user directory or
+	// an exact authorized application binding. It does not grant management rights.
+	GetUsableModel(ctx context.Context, id string) (*types.Model, error)
 	// ListModels lists all models
 	ListModels(ctx context.Context) ([]*types.Model, error)
 	// UpdateModel updates a model

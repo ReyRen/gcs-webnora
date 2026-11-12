@@ -178,6 +178,7 @@ func BuildContainer(container *dig.Container) *dig.Container {
 	must(container.Provide(repository.NewMessageRepository))
 	must(container.Provide(repository.NewMessageSuggestionRepository))
 	must(container.Provide(repository.NewModelRepository))
+	must(container.Provide(repository.NewUserModelCatalogRepository))
 	must(container.Provide(repository.NewUserRepository))
 	must(container.Provide(repository.NewAuthTokenRepository))
 	must(container.Provide(repository.NewSystemSettingRepository))
@@ -277,6 +278,7 @@ func BuildContainer(container *dig.Container) *dig.Container {
 	must(container.Provide(service.NewChunkService))
 	must(container.Provide(service.NewKnowledgeTagService))
 	must(container.Provide(embedding.NewBatchEmbedder))
+	must(container.Provide(service.NewUserModelCatalogService))
 	must(container.Provide(service.NewModelService))
 	must(container.Provide(service.NewDatasetService))
 	must(container.Provide(service.NewEvaluationService))
@@ -1171,6 +1173,12 @@ func initDatabase(cfg *config.Config) (*gorm.DB, error) {
 		applyDBMaxOpenConns(context.Background(), sqlDB)
 	}
 	sqlDB.SetConnMaxLifetime(time.Duration(10) * time.Minute)
+	if err := repository.EnsureModelReferencePolicy(db); err != nil {
+		return nil, err
+	}
+	if err := repository.InstallModelReferenceValidation(db, cfg); err != nil {
+		return nil, err
+	}
 
 	return db, nil
 }

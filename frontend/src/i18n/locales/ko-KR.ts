@@ -3833,6 +3833,7 @@ export default {
         asr_model: '음성 인식 모델',
         wiki_synthesis_model: 'Wiki 종합 모델',
         auto_tag_model: '자동 태그 모델',
+        profile_model: '지식 베이스 설명 모델',
         chat_model: '대화 모델',
         rerank_model: '재정렬 모델',
         query_understand_model: '질의 이해 모델',

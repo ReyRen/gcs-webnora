@@ -28,7 +28,10 @@ import (
 // ModelHandler handles HTTP requests for model-related operations
 // It implements the necessary methods to create, retrieve, update, and delete models
 type ModelHandler struct {
-	service interfaces.ModelService
+	service   interfaces.ModelService
+	catalog   interfaces.UserModelCatalogService
+	kbService interfaces.KnowledgeBaseService
+	kbShares  interfaces.KBShareService
 }
 
 // NewModelHandler creates a new instance of ModelHandler
@@ -37,8 +40,8 @@ type ModelHandler struct {
 //   - service: An implementation of the ModelService interface
 //
 // Returns a pointer to the newly created ModelHandler
-func NewModelHandler(service interfaces.ModelService) *ModelHandler {
-	return &ModelHandler{service: service}
+func NewModelHandler(service interfaces.ModelService, catalog interfaces.UserModelCatalogService, kbService interfaces.KnowledgeBaseService, kbShares interfaces.KBShareService) *ModelHandler {
+	return &ModelHandler{service: service, catalog: catalog, kbService: kbService, kbShares: kbShares}
 }
 
 // Per-response redaction/stripping for Model now lives in
@@ -282,6 +285,17 @@ func (h *ModelHandler) ListModels(c *gin.Context) {
 		return
 	}
 
+	// The legacy administration route remains owner-scoped. Applications use
+	// /models/available for user choices; foreign bindings never expose integration details here.
+	if h.catalog != nil {
+		scoped := make([]*types.Model, 0, len(models))
+		for _, model := range models {
+			if model.TenantID == tenantID || model.IsBuiltin {
+				scoped = append(scoped, model)
+			}
+		}
+		models = scoped
+	}
 	logger.Infof(ctx, "Retrieved model list successfully, Tenant ID: %d, Total: %d models", tenantID, len(models))
 
 	c.JSON(http.StatusOK, gin.H{

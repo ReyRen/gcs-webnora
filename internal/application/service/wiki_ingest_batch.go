@@ -414,7 +414,7 @@ func (s *wikiIngestService) ProcessWikiIngest(ctx context.Context, t *asynq.Task
 		exitStatus = "missing_synthesis_model"
 		return s.releaseIngestForUnavailableWiki(ctx, kb.ID, "no synthesis model configured")
 	}
-	chatModel, err := s.modelService.GetChatModel(ctx, synthesisModelID)
+	chatModel, err := s.modelService.GetChatModel(types.WithKnowledgeBaseModels(ctx, kb), synthesisModelID)
 	if errors.Is(err, ErrModelNotFound) {
 		exitStatus = "synthesis_model_not_found"
 		return s.releaseIngestForUnavailableWiki(ctx, kb.ID, "synthesis model "+synthesisModelID+" not found")
@@ -1248,7 +1248,7 @@ func (s *wikiIngestService) ProcessWikiFinalize(ctx context.Context, t *asynq.Ta
 
 	indexRebuilt := false
 	if kb.IsWikiAutoGenerateEnabled() && changeDesc.Len() > 0 && synthesisModelID != "" {
-		chatModel, mErr := s.modelService.GetChatModel(ctx, synthesisModelID)
+		chatModel, mErr := s.modelService.GetChatModel(types.WithKnowledgeBaseModels(ctx, kb), synthesisModelID)
 		if mErr != nil {
 			logger.Warnf(ctx, "wiki finalize: get chat model failed: %v", mErr)
 		} else if err := s.rebuildIndexPage(ctx, chatModel, payload, changeDesc.String(), lang,

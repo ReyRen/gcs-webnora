@@ -46,6 +46,7 @@ const (
 	ModelUsageBindingASRModel             ModelUsageBinding = "asr_model"
 	ModelUsageBindingWikiSynthesisModel   ModelUsageBinding = "wiki_synthesis_model"
 	ModelUsageBindingAutoTagModel         ModelUsageBinding = "auto_tag_model"
+	ModelUsageBindingProfileModel         ModelUsageBinding = "profile_model"
 	ModelUsageBindingChatModel            ModelUsageBinding = "chat_model"
 	ModelUsageBindingRerankModel          ModelUsageBinding = "rerank_model"
 	ModelUsageBindingQueryUnderstandModel ModelUsageBinding = "query_understand_model"
@@ -71,8 +72,8 @@ type ModelUsageMemory struct {
 // under-count the references that actually block deletion.
 const ModelUsageListLimit = 50
 
-// ModelUsageDetails explains every active tenant-scoped reference that blocks
-// model deletion. KnowledgeBases and Agents may be truncated to
+// ModelUsageDetails lists authorized source-tenant resources and counts active
+// references across business tenants without exposing inaccessible names. KnowledgeBases and Agents may be truncated to
 // ModelUsageListLimit entries; KnowledgeBaseTotal and AgentTotal are the
 // untruncated counts used by the deletion guard and UI headings.
 type ModelUsageDetails struct {
