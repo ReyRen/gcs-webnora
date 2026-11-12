@@ -38,6 +38,35 @@
   <a href="https://trendshift.io/repositories/15289"><img src="https://trendshift.io/api/badge/repositories/15289" alt="Tencent/WeKnora | Trendshift" width="220" height="48"/></a>
 </p>
 
+<a id="platform-update-policy"></a>
+
+## Updates and upstream merges
+
+This policy applies to both `zhishu-harness` and `gcs-webnora`. Updates run only on an explicit user request; no scheduled update task is enabled. Preserve platform capabilities while keeping each project current with its own upstream.
+
+| Upstream and platform functionality | Merge decision |
+|---|---|
+| The platform has a unique capability | Keep it and adapt it to the new upstream APIs. |
+| Upstream fully covers a platform capability | Use the upstream implementation and remove the redundant platform implementation. |
+| Upstream covers only part of a platform capability | Use upstream for the shared part and retain only the uncovered business behavior through supported extensions or configuration. |
+| Preserving a required capability, data compatibility or permissions conflicts with upstream | Pause the affected release, explain the specific conflict and ask the user to decide. |
+
+Compare actual behavior, configuration, permissions and compatibility; matching names or files do not establish equivalent functionality. Resolve routine merge conflicts under these rules without repeated approval. Repositories keep their own histories and PRs; “up to date” means incorporating upstream while preserving required business behavior, rather than identical source trees.
+
+1. Read live upstream and fork refs, local/server checkouts, uncommitted work, pending PRs, images and running services. Independently check pending merges, business-code builds, deployment and interrupted work; unchanged upstream refs do not mean the release is complete.
+2. Review on a branch outside Mutagen. Preserve unknown work and establish ownership before publishing it; never force-push, reset unknown edits or push/open PRs in either official upstream. Land reviewed changes in the appropriate fork’s `main` and synchronize clean local/server checkouts with Mutagen paused, server first, then local, before resuming and flushing.
+3. Validate the affected behavior, types, static checks, documentation, dependencies and build. Runtime changes also require the relevant sandbox, Office, native Web, offline-market and integration checks. Fix real failures; report infrastructure limitations with equivalent validation and keep failed checks recorded as failures.
+4. For a runtime release, build from clean, merged `main`, validate without real user data, deploy and verify actual running versions. A Harness image update includes the Master default and sequential existing-user rollouts, so both current and future Web launches use the new image. Stop on the first failure. x86 is the current release target; ARM requires separate authorization.
+5. Keep user JFS paths, data ownership, SSO, sharing/revocation and sandbox protections intact. Persisted-format changes require stopped writers and a consistent backup; process rollback does not roll back data formats. Documentation-only updates require documentation checks and synchronization, without rebuilding images or restarting services when runtime inputs are unchanged.
+
+For example, request:
+
+> Update zhishu-harness and gcs-webnora: merge each latest upstream and the reviewed custom changes under this policy, update both main branches and local/server checkouts, and validate and deploy x86 runtime changes. Keep ARM unchanged.
+
+Report upstream integration, main commits, checkout synchronization, built artifacts and deployed versions separately, including remaining work and blockers. Never report a build or a mirror-branch update as a completed deployment.
+
+This fork is `ReyRen/gcs-webnora`; its read-only upstream is `Tencent/WeKnora:main`. Integrate upstream into fork `main`; do not introduce a mirror `master` branch. Preserve [per-user platform SSO](docs/integrations/toolchain-platform-sso.md), shared-knowledge permissions and revocation, [user-owned storage](docs/integrations/user-storage.md) and the [user model catalog](docs/integrations/user-model-catalog.md). Harness’s native “Model settings” is the single configuration entry; knowledge bases and tasks choose available models using their own business logic. Coordinate frontend/backend versions and data migrations with the [230 deployment](deploy/README.dev-230.md); publish any required Harness changes through that project’s own `main` and [release procedure](https://github.com/ReyRen/zhishu-harness/blob/main/docs/cookbook/updating-platform-fork.md).
+
 ## Overview
 
 [WeKnora](https://weknora.weixin.qq.com) is an open-source, LLM-powered knowledge framework for enterprise document understanding, semantic retrieval and reasoning. It brings a team's documents together so they can be searched, reasoned over and kept up to date.
