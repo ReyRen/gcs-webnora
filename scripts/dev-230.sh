@@ -4,7 +4,7 @@ set -eu
 
 case "${1:-}" in
   app)
-    mkdir -p /runtime/bin /runtime/tmp /runtime/data/files /runtime/logs
+    mkdir -p /runtime/bin /runtime/tmp /runtime/logs
     if [ ! -x /runtime/bin/air ]; then
       GOBIN=/runtime/bin go install github.com/air-verse/air@v1.67.4
     fi

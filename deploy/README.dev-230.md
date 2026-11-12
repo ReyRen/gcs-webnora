@@ -7,7 +7,7 @@
 - 主平台集成使用 5175 子路径构建及 HTTPS 代理，详见 [SSO 接入说明](../docs/integrations/toolchain-platform-sso.md)。
 - 后端：<http://172.18.36.230:18090/health>，Air 自动编译并重启 Go 服务。
 - PostgreSQL、Redis、Docreader 仅监听服务器回环地址。
-- 数据、依赖、工具链和缓存保存在 `/storage-md0/renyuan/.gcs-webnora-runtime`，位于同步目录之外。
+- 依赖、工具链和运行缓存保存在 `/storage-md0/renyuan/.gcs-webnora-runtime`，位于同步目录之外。
 - 运行配置和生成的密钥保存在根目录 `.env`，不提交 Git。
 
 在服务器项目根目录执行：
@@ -81,3 +81,4 @@ Mutagen 源码同步、230 服务部署与 GitHub 发布分别核对。完成发
 ## 用户文件存储
 
 Harness 集成部署的用户文件、Redis 与受限账号配置见[用户存储与迁移](../docs/integrations/user-storage.md)。当前 Compose 已使用用户 JFS 目录；现有本地文件部署第一次升级时必须先停写、备份并执行迁移。
+启动脚本只准备运行缓存目录，用户文件目录由存储服务按已配置的 JFS 归属创建。
