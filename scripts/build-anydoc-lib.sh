@@ -51,7 +51,7 @@ fi
 
 # Include a patch revision so changes to our patches invalidate existing copies
 # even when the upstream anydoc version stays the same.
-anydoc_patch_id="$anydoc_version-zip9-v1"
+anydoc_patch_id="$anydoc_version-zip9-v2"
 
 # Copy the pinned version, expose the official serializer, and upgrade zip to
 # the fixed major version (upstream anydoc 0.2.4 still requires zip ^8.6.0).
@@ -95,14 +95,15 @@ prepare_patched_anydoc() {
   fi
   sed -i.bak 's/^use render::markdown::document_to_markdown;/pub use render::markdown::document_to_markdown;/' "$dest/src/lib.rs"
   rm -f "$dest/src/lib.rs.bak"
-  # RUSTSEC-2026-0367/0368/0369 have no fix in zip 8.x. Only change zip's
+  # Require zip 9.0.5 for RUSTSEC-2026-0548 and the earlier ZIP advisories.
+  # Only change zip's
   # version, preserving its deflate feature and disabled default features.
   # Fail on upstream manifest changes rather than silently leaving zip unpatched.
   if ! awk '
     /^\[/ { in_zip = ($0 == "[dependencies.zip]") }
     in_zip && /^version = / {
       if ($0 != "version = \"8.6.0\"") exit 1
-      $0 = "version = \"9\""
+      $0 = "version = \"9.0.5\""
       patched++
     }
     { print }
@@ -133,9 +134,30 @@ prepare_patched_anydoc
 # resolver drift must fail the build rather than ship an unaudited tree.
 cargo build --release --locked --manifest-path "$crate_dir/Cargo.toml" --target "$target"
 
+# Newer rustc stable embeds LLVM bitcode sections (.llvmbc, .llvmcmd, ...) in
+# the staticlib. Go 1.26 refuses to link an archive that carries them — they
+# are only useful for cross-language LTO, which this cgo link does not use —
+# and it reports one section per run. Strip every .llvm* section before cgo
+# consumes the archive, so the build does not depend on which rustc `stable`
+# resolves to that day.
+strip_llvm_lto_sections() {
+  local lib="$1"
+  command -v readelf >/dev/null 2>&1 && command -v objcopy >/dev/null 2>&1 || return 0
+  local sections section
+  sections=$(readelf -S "$lib" 2>/dev/null | grep -oE '\.llvm[a-zA-Z0-9_]+' | sort -u || true)
+  [ -n "$sections" ] || return 0
+  while IFS= read -r section; do
+    [ -n "$section" ] || continue
+    if ! objcopy --remove-section="$section" "$lib" 2>/dev/null; then
+      echo "warning: could not strip $section from $lib; the Go linker may reject it" >&2
+    fi
+  done <<< "$sections"
+}
+
 dest="$crate_dir/lib/$lib_dir"
 mkdir -p "$dest"
 cp "$crate_dir/target/$target/release/$lib_name" "$dest/$lib_name"
+strip_llvm_lto_sections "$dest/$lib_name"
 
 echo "Wrote $dest/$lib_name"
 echo "Build WeKnora with the archive: go build -tags anydoc ./cmd/server"

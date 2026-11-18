@@ -304,7 +304,7 @@ type pageContextModelService struct {
 	interfaces.ModelService
 }
 
-func (*pageContextModelService) GetModelByID(_ context.Context, id string) (*types.Model, error) {
+func (*pageContextModelService) GetUsableModel(_ context.Context, id string) (*types.Model, error) {
 	if id == "m-1" {
 		return &types.Model{ID: id, Name: "qwen-max", DisplayName: "Qwen", Type: types.ModelTypeKnowledgeQA}, nil
 	}
