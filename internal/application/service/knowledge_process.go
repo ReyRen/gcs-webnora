@@ -595,15 +595,21 @@ func (s *knowledgeService) processChunks(ctx context.Context,
 		logger.Infof(ctx, "Vector/keyword indexing disabled for KB %s, skipping embedding model", kb.ID)
 	}
 
+	hadPreviousContent := hasPreviousIndexedContent(knowledge)
+	previousStorageSize := max(int64(0), knowledge.StorageSize)
+	previousEmbeddingModelID := strings.TrimSpace(knowledge.EmbeddingModelID)
+	cleanPreviousIndex := hadPreviousContent && previousEmbeddingModelID != "" &&
+		(embeddingModel == nil || previousEmbeddingModelID != kb.EmbeddingModelID) && s.modelService != nil
+
 	// Resolve the vector store before deleting anything: failing after the
 	// cleanup below would leave the document with neither old nor new chunks.
 	var retrieveEngine *retriever.CompositeRetrieveEngine
 	tenantInfo := ctx.Value(types.TenantInfoContextKey).(*types.Tenant)
 	var err error
-	if embeddingModel != nil {
+	if embeddingModel != nil || cleanPreviousIndex {
 		retrieveEngine, err = retriever.CreateRetrieveEngineForKB(
 			ctx, s.retrieveEngine, s.ownership, tenantInfo.ID, kb.VectorStoreID)
-		if err != nil {
+		if err != nil && embeddingModel != nil {
 			// Indexing below dereferences the engine; a nil one would panic.
 			logger.Errorf(ctx, "processChunks resolve vector store for KB %s failed: %v", kb.ID, err)
 			if errors.Is(err, retriever.ErrVectorStoreUnavailable) {
@@ -615,9 +621,6 @@ func (s *knowledgeService) processChunks(ctx context.Context,
 		}
 	}
 
-	hadPreviousContent := hasPreviousIndexedContent(knowledge)
-	previousStorageSize := max(int64(0), knowledge.StorageSize)
-	previousEmbeddingModelID := strings.TrimSpace(knowledge.EmbeddingModelID)
 	var obsoleteImageURLs []string
 	if hadPreviousContent {
 		obsoleteImageURLs = s.collectObsoleteChunkImageURLs(ctx, kb, tenantInfo.ID, knowledge.ID, chunks, options)
@@ -637,9 +640,7 @@ func (s *knowledgeService) processChunks(ctx context.Context,
 	}
 
 	// 若重解析前使用了不同的 Embedding 模型（或知识库后来关闭了向量索引），一并清理旧维度索引
-	if hadPreviousContent && previousEmbeddingModelID != "" &&
-		(embeddingModel == nil || previousEmbeddingModelID != kb.EmbeddingModelID) &&
-		s.modelService != nil && retrieveEngine != nil {
+	if cleanPreviousIndex && retrieveEngine != nil {
 		if prevModel, modelErr := s.modelService.GetEmbeddingModel(types.WithModelBindings(ctx, previousEmbeddingModelID), previousEmbeddingModelID); modelErr != nil {
 			logger.Warnf(ctx, "Failed to resolve previous embedding model %s during index swap: %v", previousEmbeddingModelID, modelErr)
 		} else if prevModel != nil && (embeddingModel == nil || prevModel.GetDimensions() != embeddingModel.GetDimensions()) {
