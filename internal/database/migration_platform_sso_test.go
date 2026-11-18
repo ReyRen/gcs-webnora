@@ -16,7 +16,7 @@ import (
 
 func TestSQLitePlatformSSOUpgradePaths(t *testing.T) {
 	root := sqliteRepoRoot(t)
-	for _, state := range []string{"fresh", "upstream", "legacy", "legacy-url"} {
+	for _, state := range []string{"fresh", "upstream", "upstream-im", "prior-fork", "legacy", "legacy-url"} {
 		t.Run(state, func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "sso.db")
 			opts := MigrationOptions{SQLiteDBPath: path}
@@ -24,6 +24,8 @@ func TestSQLitePlatformSSOUpgradePaths(t *testing.T) {
 				version := 52
 				if state == "legacy" || state == "legacy-url" {
 					version = 51
+				} else if state == "prior-fork" {
+					version = 55
 				}
 				chdirAndRestore(t, copySQLiteMigrationsThrough(t, root, version))
 				require.NoError(t, RunMigrationsWithOptions("sqlite3://unused", opts))
@@ -39,8 +41,15 @@ func TestSQLitePlatformSSOUpgradePaths(t *testing.T) {
 				require.NoError(t, err)
 				insertPlatformSSOSentinel(t, db)
 			}
-			if state == "upstream" {
+			if state == "upstream" || state == "upstream-im" {
 				insertVaultSentinel(t, db)
+			}
+			if state == "upstream-im" {
+				seedUpstreamIMMigration(t, db, root, "sqlite", "000056", 53)
+			}
+			if state == "prior-fork" {
+				insertPlatformSSOSentinel(t, db)
+				insertPlatformBindingsSentinel(t, db)
 			}
 			dsn := "sqlite3://unused"
 			if state == "legacy-url" {
@@ -57,8 +66,12 @@ func TestSQLitePlatformSSOUpgradePaths(t *testing.T) {
 			if state == "legacy" || state == "legacy-url" {
 				requirePlatformSSOSentinel(t, db)
 			}
-			if state == "upstream" {
+			if state == "upstream" || state == "upstream-im" {
 				requireVaultSentinel(t, db)
+			}
+			if state == "prior-fork" {
+				requirePlatformSSOSentinel(t, db)
+				requirePlatformBindingsSentinel(t, db)
 			}
 		})
 	}
@@ -76,7 +89,7 @@ func TestPostgresPlatformSSOUpgradePaths(t *testing.T) {
 	defer admin.Close()
 	root := sqliteRepoRoot(t)
 	chdirAndRestore(t, root)
-	for _, state := range []string{"fresh", "upstream", "legacy"} {
+	for _, state := range []string{"fresh", "upstream", "upstream-im", "prior-fork", "legacy"} {
 		t.Run(state, func(t *testing.T) {
 			// Each path uses a new database; never reset the database in the DSN.
 			name := fmt.Sprintf("weknora_merge_test_%s_%d", state, time.Now().UnixNano())
@@ -98,6 +111,8 @@ func TestPostgresPlatformSSOUpgradePaths(t *testing.T) {
 				version := uint(136)
 				if state == "legacy" {
 					version = 135
+				} else if state == "prior-fork" {
+					version = 139
 				}
 				require.NoError(t, m.Migrate(version))
 				_, closeErr := m.Close()
@@ -112,15 +127,22 @@ func TestPostgresPlatformSSOUpgradePaths(t *testing.T) {
 				require.NoError(t, err)
 				insertPlatformSSOSentinel(t, db)
 			}
-			if state == "upstream" {
+			if state == "upstream" || state == "upstream-im" {
 				insertVaultSentinel(t, db)
+			}
+			if state == "upstream-im" {
+				seedUpstreamIMMigration(t, db, root, "versioned", "000140", 137)
+			}
+			if state == "prior-fork" {
+				insertPlatformSSOSentinel(t, db)
+				insertPlatformBindingsSentinel(t, db)
 			}
 			require.NoError(t, RunMigrationsWithOptions(testDSN, MigrationOptions{}))
 			require.NoError(t, RunMigrationsWithOptions(testDSN, MigrationOptions{}))
 			var version int
 			var dirty bool
 			require.NoError(t, db.QueryRow("SELECT version,dirty FROM schema_migrations").Scan(&version, &dirty))
-			require.Equal(t, 139, version)
+			require.Equal(t, latestVersionedMigration(t, root), version)
 			require.False(t, dirty)
 			var tables int
 			require.NoError(t, db.QueryRow(`SELECT count(*) FROM information_schema.tables
@@ -131,11 +153,43 @@ func TestPostgresPlatformSSOUpgradePaths(t *testing.T) {
 			if state == "legacy" {
 				requirePlatformSSOSentinel(t, db)
 			}
-			if state == "upstream" {
+			if state == "upstream" || state == "upstream-im" {
 				requireVaultSentinel(t, db)
+			}
+			if state == "prior-fork" {
+				requirePlatformSSOSentinel(t, db)
+				requirePlatformBindingsSentinel(t, db)
 			}
 		})
 	}
+}
+
+func seedUpstreamIMMigration(t *testing.T, db *sql.DB, root, dir, migration string, upstreamVersion int) {
+	t.Helper()
+	content, err := os.ReadFile(filepath.Join(root, "migrations", dir, migration+"_im_session_mode_indexes.up.sql"))
+	require.NoError(t, err)
+	_, err = db.Exec(string(content))
+	require.NoError(t, err)
+	_, err = db.Exec(fmt.Sprintf("UPDATE schema_migrations SET version=%d", upstreamVersion))
+	require.NoError(t, err)
+}
+
+func insertPlatformBindingsSentinel(t *testing.T, db *sql.DB) {
+	t.Helper()
+	_, err := db.Exec("INSERT INTO platform_storage_bindings(tenant_id,provider,subject) VALUES (7,'https://sso.invalid','446')")
+	require.NoError(t, err)
+	_, err = db.Exec("UPDATE user_model_reference_policy SET policy_version=1 WHERE id=1")
+	require.NoError(t, err)
+}
+
+func requirePlatformBindingsSentinel(t *testing.T, db *sql.DB) {
+	t.Helper()
+	var owner string
+	require.NoError(t, db.QueryRow("SELECT subject FROM platform_storage_bindings WHERE tenant_id=7").Scan(&owner))
+	require.Equal(t, "446", owner)
+	var version int
+	require.NoError(t, db.QueryRow("SELECT policy_version FROM user_model_reference_policy WHERE id=1").Scan(&version))
+	require.Equal(t, 1, version)
 }
 
 func insertPlatformSSOSentinel(t *testing.T, db *sql.DB) {
