@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { clampSidebarWidth, SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_COLLAPSE_THRESHOLD } from '../utils/sidebarWidth'
-import { KNOWLEDGE_WORKSPACE, isHarnessModelSetting } from '@/config/knowledgeWorkspace'
+import { KNOWLEDGE_WORKSPACE, isHarnessModelSetting } from '../config/knowledgeWorkspace'
 import { openHarnessModelSettings } from '@/utils/harnessModelSettings'
 import { MessagePlugin } from 'tdesign-vue-next'
 import i18n from '@/i18n'

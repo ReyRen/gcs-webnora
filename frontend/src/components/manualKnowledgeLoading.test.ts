@@ -7,6 +7,7 @@ import { fixture, flush } from '../test-utils/vueFixture.ts'
 import * as manualDraft from '../utils/manualKnowledgeDraft.ts'
 import * as markdownEditing from '../utils/markdownEditing.ts'
 import * as sidebarWidth from '../utils/sidebarWidth.ts'
+import * as knowledgeWorkspace from '../config/knowledgeWorkspace.ts'
 
 function deferred<T = any>() {
   let resolve!: (value: T) => void
@@ -23,6 +24,7 @@ function setup(t: TestContext, api: Record<string, unknown> = {}, ensure = async
   pinia.setActivePinia(pinia.createPinia())
   const { useUIStore } = f.evaluate(readFileSync(new URL('../stores/ui.ts', import.meta.url), 'utf8'), {
     pinia, '../utils/sidebarWidth': sidebarWidth,
+    '../config/knowledgeWorkspace': knowledgeWorkspace,
   })
   const ui = useUIStore()
   const messages: string[] = []

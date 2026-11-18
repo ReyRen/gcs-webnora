@@ -16208,14 +16208,6 @@
         },
         "/models/{id}/harness-chat": {
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    },
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "使用当前已授权空间的模型执行流式推理；不返回模型凭据。配置版本变更时拒绝过期请求。",
                 "consumes": [
                     "application/json"
@@ -16270,7 +16262,15 @@
                             "$ref": "#/definitions/github_com_Tencent_WeKnora_internal_errors.AppError"
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "Bearer": []
+                    },
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/notifications": {
