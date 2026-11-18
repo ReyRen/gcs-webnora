@@ -25,6 +25,9 @@ function setup(t: TestContext, api: Record<string, unknown> = {}, ensure = async
   const { useUIStore } = f.evaluate(readFileSync(new URL('../stores/ui.ts', import.meta.url), 'utf8'), {
     pinia, '../utils/sidebarWidth': sidebarWidth,
     '../config/knowledgeWorkspace': knowledgeWorkspace,
+    '../utils/harnessModelSettings': { openHarnessModelSettings: async () => {} },
+    'tdesign-vue-next': { MessagePlugin: { error() {} } },
+    '../i18n/index': { default: { global: { t: (key: string) => key } } },
   })
   const ui = useUIStore()
   const messages: string[] = []
