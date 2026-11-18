@@ -176,7 +176,8 @@ func seedUpstreamIMMigration(t *testing.T, db *sql.DB, root, dir, migration stri
 
 func insertPlatformBindingsSentinel(t *testing.T, db *sql.DB) {
 	t.Helper()
-	_, err := db.Exec("INSERT INTO platform_storage_bindings(tenant_id,provider,subject) VALUES (7,'https://sso.invalid','446')")
+	_, err := db.Exec("INSERT INTO platform_storage_bindings(tenant_id,provider,subject)" +
+		" VALUES (7,'https://sso.invalid','446')")
 	require.NoError(t, err)
 	_, err = db.Exec("UPDATE user_model_reference_policy SET policy_version=1 WHERE id=1")
 	require.NoError(t, err)

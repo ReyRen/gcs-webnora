@@ -56,7 +56,7 @@ func reconcilePlatformSSO(dsn, dbPath string, m *migrate.Migrate) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	var current uint
 	if !sqlite {
@@ -73,13 +73,16 @@ func reconcilePlatformSSO(dsn, dbPath string, m *migrate.Migrate) error {
 
 	var hasSSOColumn, hasIMIndex bool
 	if sqlite {
-		err = tx.QueryRow("SELECT EXISTS (SELECT 1 FROM pragma_table_info('auth_tokens') WHERE name = 'platform_sso_session_id'),"+
+		err = tx.QueryRow("SELECT EXISTS (SELECT 1 FROM pragma_table_info('auth_tokens')"+
+			" WHERE name = 'platform_sso_session_id'),"+
 			" EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'index' AND tbl_name = 'im_channel_sessions'"+
 			" AND name = 'idx_channel_lookup' AND sql LIKE '%thread_id = %')").Scan(&hasSSOColumn, &hasIMIndex)
 	} else {
-		err = tx.QueryRow("SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema()"+
+		err = tx.QueryRow("SELECT EXISTS (SELECT 1 FROM information_schema.columns"+
+			" WHERE table_schema = current_schema()"+
 			" AND table_name = 'auth_tokens' AND column_name = 'platform_sso_session_id'),"+
-			" EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = current_schema() AND tablename = 'im_channel_sessions'"+
+			" EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = current_schema()"+
+			" AND tablename = 'im_channel_sessions'"+
 			" AND indexname = 'idx_channel_lookup' AND indexdef LIKE '%thread_id%')").Scan(&hasSSOColumn, &hasIMIndex)
 	}
 	if err != nil {
@@ -114,7 +117,8 @@ func reconcilePlatformSSO(dsn, dbPath string, m *migrate.Migrate) error {
 		return fmt.Errorf("reconcile platform SSO schema: %w", err)
 	}
 	if legacySQLite {
-		if _, err := tx.Exec("UPDATE schema_migrations SET version = 53 WHERE version = 52 AND dirty = false"); err != nil {
+		_, err := tx.Exec("UPDATE schema_migrations SET version = 53 WHERE version = 52 AND dirty = false")
+		if err != nil {
 			return err
 		}
 	}
