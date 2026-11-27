@@ -1555,6 +1555,7 @@ func (h *KnowledgeBaseHandler) CopyKnowledgeBase(c *gin.Context) {
 		CreateTarget: create,
 		CreatorID:    targetKB.CreatorID,
 		Initiator:    types.TaskInitiatorFromContext(ctx),
+		Language:     types.LanguageFromContextOrDefault(ctx),
 	}
 	langfuse.InjectTracing(ctx, &payload)
 
