@@ -51,6 +51,7 @@ function setup(t: TestContext) {
     'tdesign-vue-next': { MessagePlugin: {} },
     '@/stores/organization': { useOrganizationStore: () => store },
     '@/stores/auth': { useAuthStore: () => ({ hasRole: () => true, canAccessAllTenants: false }) },
+    '@/config/knowledgeWorkspace': { KNOWLEDGE_WORKSPACE: true },
     '@/components/settings/useConfirmDelete': { useConfirmDelete: () => () => undefined },
     '@/utils/clipboard': { copyWithToast: async () => undefined },
     '@/utils/resourceListSearch': { matchesResourceQuery },
