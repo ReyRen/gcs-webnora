@@ -17,7 +17,11 @@ function makePins(ids: Array<[string, string]>) {
   return ids.map(([type, id], i) => ({ type, id, ts: 1_700_000_000_000 + i }))
 }
 
-async function setup(t: TestContext, kbsByCall: any[][]) {
+async function setup(
+  t: TestContext,
+  kbsByCall: any[][],
+  fetchSpace: (id: string) => Promise<{ success: boolean; data: object[] }> = async () => ({ success: true, data: [] }),
+) {
   const f = fixture(t)
   const route = vue.reactive({ params: {}, query: {} })
 
@@ -48,10 +52,15 @@ async function setup(t: TestContext, kbsByCall: any[][]) {
   }
 
   const creator = vue.ref('all')
+  const scope = vue.ref('all')
+  const auth = vue.reactive({
+    hasRole: () => false, isLiteMode: false, effectiveTenantId: 1, membershipAccessKey: 'member',
+  })
+  const showError = t.mock.fn()
   const page = f.component(new URL('./KnowledgeBaseList.vue', import.meta.url), {
     'vue-router': { useRoute: () => route, useRouter: () => ({ replace() {} }) },
     'vue-i18n': { useI18n: () => ({ t: (key: string) => key }) },
-    'tdesign-vue-next': { MessagePlugin: {} },
+    'tdesign-vue-next': { MessagePlugin: { error: showError } },
     '@/utils/assistantDataChange': { useAssistantDataChange() {} },
     '@/components/settings/useConfirmDelete': { useConfirmDelete: () => ({}) },
     '@/api/knowledge-base': {
@@ -69,15 +78,13 @@ async function setup(t: TestContext, kbsByCall: any[][]) {
       showKBEditorModal: false, kbEditorMode: 'create', currentKBId: '', kbEditorType: 'document',
       closeKBEditor() {}, openKBSettings() {}, openCreateKB() {},
     }) },
-    '@/stores/auth': { useAuthStore: () => ({
-      hasRole: () => false, isLiteMode: false, effectiveTenantId: 1,
-    }) },
+    '@/stores/auth': { useAuthStore: () => auth },
     '@/stores/organization': { useOrganizationStore: () => vue.reactive({
       sharedKnowledgeBases: shared, organizations: [],
       fetchSharedKnowledgeBases: async () => {}, fetchOrganizations: async () => {},
       resourceCounts: undefined, getKBPermission: () => 'owner',
     }) },
-    '@/api/organization': { listOrganizationSharedKnowledgeBases: async () => ({ success: true, data: [] }) },
+    '@/api/organization': { listOrganizationSharedKnowledgeBases: fetchSpace },
     '@/utils/index': { formatStringDate: (d: Date) => d.toISOString().slice(0, 10) },
     '@/utils/resourceListSearch': { matchesResourceQuery: () => true },
     '@/utils/resourceSorting': { sortResourcesWithinGroups: (items: any[]) => items },
@@ -88,13 +95,13 @@ async function setup(t: TestContext, kbsByCall: any[][]) {
       loaded: vue.ref(true), isReadyForDocumentKb: vue.computed(() => true),
     }) },
     '@/composables/useListUrlState': { useListUrlState: () => ({
-      scope: vue.ref('all'), creator, query: vue.ref(''),
+      scope, creator, query: vue.ref(''),
     }) },
     '@/composables/useResourcePins': { useResourcePins: () => pins },
   })
   await flush()
   await flush()
-  return { ...f, ...page, pins, creator, shared }
+  return { ...f, ...page, pins, creator, shared, scope, auth, showError }
 }
 
 test('recent and favorite counts match the resolved lists, not the raw pins', async t => {
@@ -130,4 +137,31 @@ test('a later deletion moves the list and the count together', async t => {
 
   assert.equal(f.vm.recentsList.length, 2)
   assert.equal(f.vm.kbRecentsCount, 2)
+})
+
+test('refreshes the selected shared space after access changes and ignores an older request failure', async t => {
+  let rejectObsolete!: (error: Error) => void
+  const obsolete = new Promise<{ success: boolean; data: object[] }>((_resolve, reject) => {
+    rejectObsolete = reject
+  })
+  const fetchSpace = t.mock.fn((_id: string) => obsolete)
+  const f = await setup(t, [[]], fetchSpace)
+  f.scope.value = 'org-1'
+  await flush()
+  assert.equal(fetchSpace.mock.callCount(), 1)
+
+  fetchSpace.mock.mockImplementation(async () => ({
+    success: true,
+    data: [{ knowledge_base: { id: 'kb-current', name: '当前知识库' }, permission: 'viewer' }],
+  }))
+  f.auth.membershipAccessKey = 'updated-member'
+  await flush()
+  assert.equal(fetchSpace.mock.callCount(), 2)
+  assert.equal(f.vm.spaceKbsList[0]?.knowledge_base.id, 'kb-current')
+
+  rejectObsolete(new Error('The previous request failed'))
+  await flush()
+  assert.equal(f.vm.spaceKbsList[0]?.knowledge_base.id, 'kb-current')
+  assert.equal(f.vm.spaceKbsLoading, false)
+  assert.equal(f.showError.mock.callCount(), 0)
 })

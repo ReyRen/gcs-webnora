@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"slices"
 	"sort"
 	"strconv"
@@ -917,6 +918,12 @@ func (s *knowledgeService) processChunks(ctx context.Context,
 				s.failKnowledgeAfterSwapCleanup(
 					ctx, tenantInfo, kb, knowledge, hadPreviousContent, previousStorageSize, err.Error(),
 				)
+				// The embedding span is already open at this point. Returning
+				// without closing it leaves the stage "running" until the
+				// housekeeping reaper promotes it to TASK_STALLED, so the UI
+				// reports a stall instead of the lookup failure that happened.
+				s.failStage(ctx, knowledge.ID, types.StageEmbedding,
+					werrors.ErrCodeUnknown, "reload tenant storage failed", err)
 				s.deleteUnindexedChunks(ctx, knowledge)
 				return nil
 			}
@@ -926,6 +933,11 @@ func (s *knowledgeService) processChunks(ctx context.Context,
 				s.failKnowledgeAfterSwapCleanup(
 					ctx, tenantInfo, kb, knowledge, hadPreviousContent, previousStorageSize, "存储空间不足",
 				)
+				// Same reason as above: the quota rejection is the outcome the
+				// user needs to see. A quota rejection is not a stall, and it
+				// is not retryable until the tenant frees space.
+				s.failStage(ctx, knowledge.ID, types.StageEmbedding,
+					werrors.ErrCodeStorageQuotaExceeded, "storage quota exceeded", nil)
 				s.deleteUnindexedChunks(ctx, knowledge)
 				return nil
 			}
@@ -2832,6 +2844,13 @@ func (s *knowledgeService) generateQuestionsWithContext(ctx context.Context,
 	return parseGeneratedQuestions(response.Content, questionCount), nil
 }
 
+// generatedQuestionListMarker matches one leading numbered or bullet list
+// marker (e.g. "1.", "1)", "1、", "-", "*", "•") so digits and dots that
+// belong to the question itself (5G, 2024, 3D, 3.5, .NET) are preserved.
+// "1." directly followed by a digit is a number like "3.5", not a marker; the
+// group keeps that following character when the marker has no space.
+var generatedQuestionListMarker = regexp.MustCompile(`^(?:\d+[.)、]\s+|\d+[)、]|\d+\.(\D)|[-*•]\s*)`)
+
 // parseGeneratedQuestions drops inline <think> reasoning first: servers that
 // ignore Thinking=false still emit it in content, and each reasoning line
 // would otherwise be indexed as a question.
@@ -2843,8 +2862,7 @@ func parseGeneratedQuestions(content string, questionCount int) []string {
 		if line == "" {
 			continue
 		}
-		line = strings.TrimLeft(line, "0123456789.-*) ")
-		line = strings.TrimSpace(line)
+		line = strings.TrimSpace(generatedQuestionListMarker.ReplaceAllString(line, "${1}"))
 		if line != "" && len(line) > 5 {
 			questions = append(questions, line)
 			if len(questions) >= questionCount {
@@ -3935,6 +3953,9 @@ func (s *knowledgeService) ProcessManualUpdate(ctx context.Context, t *asynq.Tas
 	ctx = logger.WithRequestID(ctx, payload.RequestId)
 	ctx = logger.WithField(ctx, "manual_process", payload.KnowledgeID)
 	ctx = types.WithExecutionTenant(ctx, payload.TenantID)
+	if payload.Language != "" {
+		ctx = context.WithValue(ctx, types.LanguageContextKey, payload.Language)
+	}
 
 	tenantInfo, err := s.tenantRepo.GetTenantByID(ctx, payload.TenantID)
 	if err != nil {
@@ -4418,6 +4439,11 @@ func (s *knowledgeService) ProcessDocument(ctx context.Context, t *asynq.Task) e
 		for i := range sourceBlocks {
 			sourceBlocks[i].Locator.SourceHash = knowledge.FileHash
 		}
+		for i := range convertResult.ImageRefs {
+			for j := range convertResult.ImageRefs[i].SourceLocators {
+				convertResult.ImageRefs[i].SourceLocators[j].SourceHash = knowledge.FileHash
+			}
+		}
 	}
 	sanitizeReadResult(convertResult)
 	normalizeStarted := time.Now()
@@ -4701,8 +4727,15 @@ func (s *knowledgeService) convert(
 	if err == nil && result == nil {
 		err = fmt.Errorf("document parser returned no result")
 	}
-	// Parser resource limits are permanent document rejections, not transient reader failures.
-	if errors.Is(err, docparser.ErrCSVMarkdownTooLarge) || errors.Is(err, anydoc.ErrResourceLimit) {
+	// These rejections cannot succeed on a retry of the same document.
+	var rejectionCause error
+	switch {
+	case errors.Is(err, anydoc.ErrEncrypted):
+		rejectionCause = err
+		result, err = &types.ReadResult{
+			Error: "This document is encrypted. Upload a copy without password protection.",
+		}, nil
+	case errors.Is(err, docparser.ErrCSVMarkdownTooLarge), errors.Is(err, anydoc.ErrResourceLimit):
 		result, err = &types.ReadResult{Error: err.Error()}, nil
 	}
 	if err != nil {
@@ -4728,7 +4761,7 @@ func (s *knowledgeService) convert(
 			logger.Errorf(ctx, "failed to persist parser error for %s: %v", knowledge.ID, err)
 		}
 		s.failStage(ctx, knowledge.ID, types.StageDocReader,
-			werrors.ErrCodeDocReaderParseFailed, result.Error, nil)
+			werrors.ErrCodeDocReaderParseFailed, result.Error, rejectionCause)
 		return nil, nil
 	}
 	if !isURL {
@@ -5144,6 +5177,9 @@ func (s *knowledgeService) ProcessKnowledgeListReparse(ctx context.Context, t *a
 		return err
 	}
 	ctx = payload.Initiator.Apply(ctx)
+	if payload.Language != "" {
+		ctx = context.WithValue(ctx, types.LanguageContextKey, payload.Language)
+	}
 	taskID, _ := asynq.GetTaskID(ctx)
 	ctx = withKBActivityTask(ctx, taskID, kbActivityTrigger(ctx))
 

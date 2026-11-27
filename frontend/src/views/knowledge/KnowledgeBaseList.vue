@@ -1153,6 +1153,8 @@ async function fetchSpaceKnowledgeBases(val: string) {
   // value fall through to the per-space fetch branch (which would 404
   // on the string "shared").
   if (val === 'shared') {
+    spaceKbsList.value = []
+    spaceKbsLoading.value = false
     spaceSelection.value = 'all'
     return
   }
@@ -1161,6 +1163,7 @@ async function fetchSpaceKnowledgeBases(val: string) {
     spaceKbsLoading.value = false
     return
   }
+  spaceKbsList.value = []
   spaceKbsLoading.value = true
   try {
     const res = await listOrganizationSharedKnowledgeBases(val)
@@ -1171,6 +1174,10 @@ async function fetchSpaceKnowledgeBases(val: string) {
     } else {
       spaceKbsList.value = []
     }
+  } catch (error) {
+    if (revision !== spaceListRevision) return
+    spaceKbsList.value = []
+    throw error
   } finally {
     if (revision === spaceListRevision) spaceKbsLoading.value = false
   }
