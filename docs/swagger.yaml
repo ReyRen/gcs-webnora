@@ -1949,6 +1949,7 @@ definitions:
     - kb.clone_started
     - kb.clone_completed
     - kb.clone_failed
+    - kb.retrieved
     - knowledge.created
     - knowledge.updated
     - knowledge.deleted
@@ -2019,6 +2020,7 @@ definitions:
     - AuditActionKBCloneStarted
     - AuditActionKBCloneCompleted
     - AuditActionKBCloneFailed
+    - AuditActionKBRetrieved
     - AuditActionKnowledgeCreated
     - AuditActionKnowledgeUpdated
     - AuditActionKnowledgeDeleted

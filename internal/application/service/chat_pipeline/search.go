@@ -469,6 +469,15 @@ func (p *PluginSearch) searchByTargets(
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	var results []*types.SearchResult
+	searched := make(map[string]bool)
+	addResult := func(ids []string, found []*types.SearchResult) {
+		mu.Lock()
+		results = append(results, found...)
+		for _, id := range ids {
+			searched[id] = true
+		}
+		mu.Unlock()
+	}
 	var firstErr error
 	var errOnce sync.Once
 	recordError := func(err error) {
@@ -501,7 +510,7 @@ func (p *PluginSearch) searchByTargets(
 							return
 						}
 						recordError(p.searchSingleTarget(
-							ctx, chatManage, t, queryText, emb, false, &mu, &results,
+							ctx, chatManage, t, queryText, emb, false, addResult,
 						))
 					}(target)
 				}
@@ -608,9 +617,7 @@ func (p *PluginSearch) searchByTargets(
 						"kb_ids":    fullKBIDs,
 						"hit_count": len(res),
 					})
-					mu.Lock()
-					results = append(results, res...)
-					mu.Unlock()
+					addResult(fullKBIDs, res)
 				}()
 			}
 
@@ -620,7 +627,7 @@ func (p *PluginSearch) searchByTargets(
 				go func(t *types.SearchTarget) {
 					defer innerWg.Done()
 					recordError(p.searchSingleTarget(
-						ctx, chatManage, t, queryText, queryEmbedding, disableVector, &mu, &results,
+						ctx, chatManage, t, queryText, queryEmbedding, disableVector, addResult,
 					))
 				}(target)
 			}
@@ -631,6 +638,12 @@ func (p *PluginSearch) searchByTargets(
 
 	wg.Wait()
 
+	chatManage.SearchedKnowledgeBases = nil
+	for _, kb := range kbList {
+		if kb != nil && searched[kb.ID] {
+			chatManage.SearchedKnowledgeBases = append(chatManage.SearchedKnowledgeBases, kb)
+		}
+	}
 	pipelineInfo(ctx, "Search", "kb_result_summary", map[string]interface{}{
 		"total_hits": len(results),
 	})
@@ -645,8 +658,7 @@ func (p *PluginSearch) searchSingleTarget(
 	queryText string,
 	queryEmbedding []float32,
 	disableVector bool,
-	mu *sync.Mutex,
-	results *[]*types.SearchResult,
+	addResult func([]string, []*types.SearchResult),
 ) error {
 	if t.Type == types.SearchTargetTypeKnowledge && len(t.KnowledgeIDs) == 0 {
 		return nil
@@ -693,9 +705,7 @@ func (p *PluginSearch) searchSingleTarget(
 		"target_type": t.Type,
 		"hit_count":   len(res),
 	})
-	mu.Lock()
-	*results = append(*results, res...)
-	mu.Unlock()
+	addResult([]string{t.KnowledgeBaseID}, res)
 	return nil
 }
 

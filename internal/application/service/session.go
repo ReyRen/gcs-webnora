@@ -183,6 +183,7 @@ type sessionService struct {
 	// allocation rows.
 	workspaceCleaner *sandboxalloc.WorkspaceCleaner
 	background       *BackgroundWork
+	audit            interfaces.AuditLogService
 }
 
 // NewSessionService creates a new session service instance with all required dependencies
@@ -210,6 +211,7 @@ func NewSessionService(cfg *config.Config,
 	tenantSkillRepo repository.TenantSkillRepository,
 	busyGate *SessionBusyGate,
 	backgroundWork *BackgroundWork,
+	audit interfaces.AuditLogService,
 ) interfaces.SessionService {
 	return &sessionService{
 		cfg:                   cfg,
@@ -238,6 +240,7 @@ func NewSessionService(cfg *config.Config,
 		tenantSkillRepo:       tenantSkillRepo,
 		busyGate:              busyGate,
 		background:            backgroundWork,
+		audit:                 audit,
 	}
 }
 

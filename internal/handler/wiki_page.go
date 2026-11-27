@@ -1188,6 +1188,14 @@ func (h *WikiPageHandler) SearchPagesAcross(c *gin.Context) {
 		_ = c.Error(errors.NewInternalServerError(err.Error()))
 		return
 	}
+	if h.auditService != nil {
+		bases, metadataErr := h.kbService.GetKnowledgeBasesByIDsOnly(ctx, kbIDs)
+		if metadataErr != nil {
+			logger.Warnf(ctx, "Could not resolve completed Wiki search targets for activity: %v", metadataErr)
+		} else {
+			service.RecordKBSearchActivity(ctx, h.auditService, bases, "wiki")
+		}
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data":    wikiPagesToSearchHits(pages, request.Query),

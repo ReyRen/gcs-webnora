@@ -861,6 +861,7 @@ export default {
         'kb.clone_started': '複製を開始',
         'kb.clone_completed': '複製が完了',
         'kb.clone_failed': '複製に失敗',
+        'kb.retrieved': 'ナレッジベースを検索',
         'knowledge.created': 'ナレッジを追加',
         'knowledge.updated': 'ナレッジを更新',
         'knowledge.deleted': 'ナレッジを削除',
@@ -914,7 +915,10 @@ export default {
         editor: '編集可能',
         admin: '管理',
         append: '追加',
-        replace: '上書き'
+        replace: '上書き',
+        retrieval_text: 'テキスト検索',
+        retrieval_image: '画像検索',
+        retrieval_wiki: 'Wiki 検索',
       }
     },
     titleCreate: 'ナレッジベースを作成',

@@ -906,7 +906,10 @@ export default {
         editor: 'Редактирование',
         admin: 'Управление',
         append: 'Добавление',
-        replace: 'Замена'
+        replace: 'Замена',
+        retrieval_text: 'Поиск по тексту',
+        retrieval_image: 'Поиск по изображению',
+        retrieval_wiki: 'Поиск по вики',
       },
       outcomes: {
         accepted: 'Принято',
@@ -924,6 +927,7 @@ export default {
         'kb.clone_started': 'Клонирование начато',
         'kb.clone_completed': 'Клонирование завершено',
         'kb.clone_failed': 'Ошибка клонирования',
+        'kb.retrieved': 'Поиск в базе знаний',
         'knowledge.created': 'Знание добавлено',
         'knowledge.updated': 'Знание обновлено',
         'knowledge.deleted': 'Знание удалено',

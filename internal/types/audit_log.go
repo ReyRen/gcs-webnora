@@ -167,6 +167,7 @@ const (
 	AuditActionKBCloneStarted   AuditAction = "kb.clone_started"
 	AuditActionKBCloneCompleted AuditAction = "kb.clone_completed"
 	AuditActionKBCloneFailed    AuditAction = "kb.clone_failed"
+	AuditActionKBRetrieved      AuditAction = "kb.retrieved"
 
 	AuditActionKnowledgeCreated        AuditAction = "knowledge.created"
 	AuditActionKnowledgeUpdated        AuditAction = "knowledge.updated"

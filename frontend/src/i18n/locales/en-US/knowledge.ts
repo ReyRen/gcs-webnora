@@ -861,6 +861,7 @@ export default {
         'kb.clone_started': 'Clone started',
         'kb.clone_completed': 'Clone completed',
         'kb.clone_failed': 'Clone failed',
+        'kb.retrieved': 'Knowledge base searched',
         'knowledge.created': 'Knowledge added',
         'knowledge.updated': 'Knowledge updated',
         'knowledge.deleted': 'Knowledge deleted',
@@ -914,7 +915,10 @@ export default {
         editor: 'Can edit',
         admin: 'Manage',
         append: 'Append',
-        replace: 'Replace'
+        replace: 'Replace',
+        retrieval_text: 'Text search',
+        retrieval_image: 'Image search',
+        retrieval_wiki: 'Wiki search',
       }
     },
     titleCreate: 'Create Knowledge Base',

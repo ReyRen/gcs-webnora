@@ -906,7 +906,10 @@ export default {
         editor: '편집 가능',
         admin: '관리',
         append: '추가',
-        replace: '덮어쓰기'
+        replace: '덮어쓰기',
+        retrieval_text: '텍스트 검색',
+        retrieval_image: '이미지 검색',
+        retrieval_wiki: 'Wiki 검색',
       },
       outcomes: {
         accepted: '접수됨',
@@ -924,6 +927,7 @@ export default {
         'kb.clone_started': '복제 시작',
         'kb.clone_completed': '복제 완료',
         'kb.clone_failed': '복제 실패',
+        'kb.retrieved': '지식 베이스 검색',
         'knowledge.created': '지식 추가',
         'knowledge.updated': '지식 업데이트',
         'knowledge.deleted': '지식 삭제',

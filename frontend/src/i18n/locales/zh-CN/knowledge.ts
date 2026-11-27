@@ -906,7 +906,10 @@ export default {
         editor: '可编辑',
         admin: '管理',
         append: '追加',
-        replace: '覆盖'
+        replace: '覆盖',
+        retrieval_text: '文本检索',
+        retrieval_image: '以图检索',
+        retrieval_wiki: 'Wiki 检索',
       },
       outcomes: {
         accepted: '已受理',
@@ -924,6 +927,7 @@ export default {
         'kb.clone_started': '开始克隆',
         'kb.clone_completed': '完成克隆',
         'kb.clone_failed': '克隆失败',
+        'kb.retrieved': '检索知识库',
         'knowledge.created': '添加知识',
         'knowledge.updated': '更新知识',
         'knowledge.deleted': '删除知识',
