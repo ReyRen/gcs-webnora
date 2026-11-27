@@ -253,7 +253,8 @@ func TestRecordKBSearchActivityUsesOwnerWorkspaceAndCurrentActor(t *testing.T) {
 	ctx = context.WithValue(ctx, types.UserContextKey, &types.User{ID: "reader", Email: "reader@example.test"})
 	audit := &captureKBActivityAudit{}
 	shared := &types.KnowledgeBase{ID: "shared", TenantID: 7}
-	RecordKBSearchActivity(ctx, audit, []*types.KnowledgeBase{nil, {}, shared, shared, {ID: "private", TenantID: 9}}, "image")
+	bases := []*types.KnowledgeBase{nil, {}, shared, shared, {ID: "private", TenantID: 9}}
+	RecordKBSearchActivity(ctx, audit, bases, "image")
 	if len(audit.entries) != 2 {
 		t.Fatalf("activities = %d, want one per searched KB", len(audit.entries))
 	}
@@ -266,7 +267,8 @@ func TestRecordKBSearchActivityUsesOwnerWorkspaceAndCurrentActor(t *testing.T) {
 	if err := json.Unmarshal(entry.Details, &details); err != nil {
 		t.Fatal(err)
 	}
-	if len(details) != 2 || details["retrieval_mode"] != "image" || details["actor_display_name"] != "reader@example.test" {
+	if len(details) != 2 || details["retrieval_mode"] != "image" ||
+		details["actor_display_name"] != "reader@example.test" {
 		t.Fatalf("activity details = %#v", details)
 	}
 }
