@@ -46,6 +46,7 @@ const KB_ACTIVITY_ACTION_LABELS_EN: Record<string, string> = {
   'kb.clone_started': 'Clone started',
   'kb.clone_completed': 'Clone completed',
   'kb.clone_failed': 'Clone failed',
+  'kb.retrieved': 'Knowledge base searched',
   'knowledge.created': 'Knowledge added',
   'knowledge.updated': 'Knowledge updated',
   'knowledge.deleted': 'Knowledge deleted',
@@ -102,6 +103,9 @@ const KB_ACTIVITY_DETAIL_VALUE_LABELS_EN: Record<string, string> = {
   admin: 'Manage',
   append: 'Append',
   replace: 'Replace',
+  retrieval_text: 'Text search',
+  retrieval_image: 'Image search',
+  retrieval_wiki: 'Wiki search',
 }
 
 function flattenBag(root: string, labels: Record<string, string>): Record<string, string> {

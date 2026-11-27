@@ -494,6 +494,10 @@ function targetSubject(entry: KnowledgeBaseActivity): string {
 
 function targetDiff(entry: KnowledgeBaseActivity): string {
   const value = details(entry)
+  if (entry.action === 'kb.retrieved' && typeof value.retrieval_mode === 'string') {
+    const key = `knowledgeEditor.activity.detailValues.retrieval_${value.retrieval_mode}`
+    if (te(key)) return t(key)
+  }
   // Data source: the connector type is more identifying than a row count.
   if (entry.target_type === 'data_source' && value.type) {
     return String(value.type)
@@ -527,6 +531,8 @@ function targetDiff(entry: KnowledgeBaseActivity): string {
 
 function actorPersonLabel(entry: KnowledgeBaseActivity): string {
   if (!entry.actor_user_id) return t('knowledgeEditor.activity.systemActor')
+  const recordedName = details(entry).actor_display_name
+  if (entry.action === 'kb.retrieved' && typeof recordedName === 'string' && recordedName.trim()) return recordedName
   const me = authStore.user
   if (me?.id === entry.actor_user_id) {
     return userDisplayName(me) || entry.actor_user_id.slice(0, 8)

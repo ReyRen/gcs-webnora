@@ -11,11 +11,13 @@ import (
 )
 
 type captureKBActivityAudit struct {
-	entry *types.AuditLog
+	entry   *types.AuditLog
+	entries []*types.AuditLog
 }
 
 func (c *captureKBActivityAudit) Log(_ context.Context, entry *types.AuditLog) error {
 	c.entry = entry
+	c.entries = append(c.entries, entry)
 	return nil
 }
 
@@ -243,6 +245,29 @@ func TestRecordWikiContentActivityUsesUnifiedActivityFeed(t *testing.T) {
 	actions, ok := details["actions"].(map[string]any)
 	if !ok || actions["ingest"] != float64(3) || actions["retract"] != float64(1) {
 		t.Fatalf("actions = %#v", details["actions"])
+	}
+}
+
+func TestRecordKBSearchActivityUsesOwnerWorkspaceAndCurrentActor(t *testing.T) {
+	ctx := types.TaskInitiator{UserID: "reader", Role: types.TenantRoleViewer}.Apply(context.Background())
+	ctx = context.WithValue(ctx, types.UserContextKey, &types.User{ID: "reader", Email: "reader@example.test"})
+	audit := &captureKBActivityAudit{}
+	shared := &types.KnowledgeBase{ID: "shared", TenantID: 7}
+	RecordKBSearchActivity(ctx, audit, []*types.KnowledgeBase{nil, {}, shared, shared, {ID: "private", TenantID: 9}}, "image")
+	if len(audit.entries) != 2 {
+		t.Fatalf("activities = %d, want one per searched KB", len(audit.entries))
+	}
+	entry := audit.entries[0]
+	if entry.TenantID != 7 || entry.ActorUserID != "reader" || entry.ScopeID != "shared" ||
+		entry.Action != types.AuditActionKBRetrieved || entry.Outcome != types.AuditOutcomeSuccess {
+		t.Fatalf("unexpected search activity: %#v", entry)
+	}
+	var details map[string]any
+	if err := json.Unmarshal(entry.Details, &details); err != nil {
+		t.Fatal(err)
+	}
+	if len(details) != 2 || details["retrieval_mode"] != "image" || details["actor_display_name"] != "reader@example.test" {
+		t.Fatalf("activity details = %#v", details)
 	}
 }
 

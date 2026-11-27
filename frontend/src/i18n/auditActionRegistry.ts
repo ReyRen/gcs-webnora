@@ -54,6 +54,7 @@ export const KB_ACTIVITY_ACTIONS = [
   'kb.clone_started',
   'kb.clone_completed',
   'kb.clone_failed',
+  'kb.retrieved',
   'knowledge.created',
   'knowledge.updated',
   'knowledge.deleted',
@@ -112,6 +113,9 @@ export const KB_ACTIVITY_DETAIL_VALUES = [
   'admin',
   'append',
   'replace',
+  'retrieval_text',
+  'retrieval_image',
+  'retrieval_wiki',
 ] as const
 
 export const KB_ACTIVITY_I18N_ROOTS = {

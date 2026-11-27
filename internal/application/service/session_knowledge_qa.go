@@ -950,6 +950,11 @@ func (s *sessionService) SearchKnowledge(ctx context.Context,
 
 	logger.Infof(ctx, "Knowledge base search completed, found %d results, rerank outcome: %s",
 		len(results), diag.Outcome)
+	mode := "text"
+	if len(opts.QueryImage) > 0 {
+		mode = "image"
+	}
+	RecordKBSearchActivity(ctx, s.audit, chatManage.SearchedKnowledgeBases, mode)
 	return &types.RetrievalResult{Results: results, Meta: types.RetrievalMeta{Rerank: diag}}, nil
 }
 

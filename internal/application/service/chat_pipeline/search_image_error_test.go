@@ -196,6 +196,9 @@ func TestSearchImageEmbeddingFailureKeepsOtherGroups(t *testing.T) {
 	if len(chatManage.SearchResult) != 1 || chatManage.SearchResult[0].ID != "image-hit" {
 		t.Fatalf("results = %#v, want the healthy group's image hit", chatManage.SearchResult)
 	}
+	if len(chatManage.SearchedKnowledgeBases) != 1 || chatManage.SearchedKnowledgeBases[0].ID != "kb-good" {
+		t.Fatalf("completed searches = %#v, want only the healthy group", chatManage.SearchedKnowledgeBases)
+	}
 	textCalls, imageCalls, hybridCalls := svc.snapshot()
 	if textCalls != 0 {
 		t.Fatalf("text embedding ran %d times for an image query", textCalls)

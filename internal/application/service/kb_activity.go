@@ -233,3 +233,28 @@ func RecordWikiContentActivity(
 		"wiki", kbID, types.AuditOutcomeSuccess,
 		map[string]any{"count": count, "actions": actions})
 }
+
+// RecordKBSearchActivity records a completed search in the owner workspace of
+// each authorized base. The caller supplies the bases whose access was resolved
+// for this search. Only attribution and the retrieval mode are stored.
+func RecordKBSearchActivity(ctx context.Context, audit interfaces.AuditLogService, bases []*types.KnowledgeBase, mode string) {
+	if audit == nil {
+		return
+	}
+	details := map[string]any{"retrieval_mode": mode}
+	if user, ok := ctx.Value(types.UserContextKey).(*types.User); ok && user != nil && user.Email != "" && user.ID == auditActor(ctx) {
+		details["actor_display_name"] = user.Email
+	}
+	seen := make(map[string]struct{}, len(bases))
+	for _, kb := range bases {
+		if kb == nil || kb.ID == "" || kb.TenantID == 0 {
+			continue
+		}
+		if _, duplicate := seen[kb.ID]; duplicate {
+			continue
+		}
+		seen[kb.ID] = struct{}{}
+		recordKBActivity(ctx, audit, kb.TenantID, kb.ID, types.AuditActionKBRetrieved,
+			"knowledge_base", kb.ID, types.AuditOutcomeSuccess, details)
+	}
+}
