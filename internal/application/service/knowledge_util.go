@@ -504,7 +504,9 @@ func downloadFileFromURL(ctx context.Context, fileURL string, payloadFileName, p
 	// MAX_FILE_URL_SIZE_MB (default 10, capped at MAX_FILE_SIZE_MB) (#3171).
 	maxFileURLSize := secutils.GetMaxFileURLSize()
 	if contentLength := resp.ContentLength; contentLength > maxFileURLSize {
-		return nil, fmt.Errorf("file size %d bytes exceeds URL import limit of %d bytes (MAX_FILE_URL_SIZE_MB)", contentLength, maxFileURLSize)
+		return nil, fmt.Errorf(
+			"file size %d bytes exceeds URL import limit of %d bytes (MAX_FILE_URL_SIZE_MB)", contentLength, maxFileURLSize,
+		)
 	}
 
 	// Resolve fileName: payload > Content-Disposition > URL path
